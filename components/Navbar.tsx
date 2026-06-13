@@ -128,12 +128,14 @@ export default function Navbar() {
         </div>
 
         {/* Center: Brand Logo */}
-        <a href="/" className="flex items-center gap-2.5 absolute left-1/2 -translate-x-1/2">
-          <div className="w-8 h-8 rounded-full bg-black flex items-center justify-center text-white font-bold text-sm tracking-tighter">
-            B
-          </div>
-          <span className="text-[20px] font-sans font-bold tracking-tight text-black">
-            BaliCraft
+        <a href="/" className="flex items-center gap-1.5 sm:gap-2 absolute left-1/2 -translate-x-1/2 whitespace-nowrap">
+          <img 
+            src="/images/logo3.png" 
+            alt="AquariusBaliCraft Logo" 
+            className="w-10 h-10 sm:w-12 sm:h-12 md:w-14 md:h-14 object-contain shrink-0"
+          />
+          <span className="text-[13px] sm:text-[16px] md:text-[18px] font-sans font-bold tracking-tight text-black leading-none">
+            AquariusBaliCraft
           </span>
         </a>
 
@@ -142,7 +144,7 @@ export default function Navbar() {
           {/* Language Switcher - Styled as Circle */}
           <button
             onClick={toggleLanguage}
-            className="w-10 h-10 rounded-full border border-gray-300 flex items-center justify-center text-[12px] font-sans font-bold text-black hover:bg-black hover:text-white hover:border-black transition-all cursor-pointer bg-white"
+            className="hidden sm:flex w-10 h-10 rounded-full border border-gray-300 items-center justify-center text-[12px] font-sans font-bold text-black hover:bg-black hover:text-white hover:border-black transition-all cursor-pointer bg-white"
             title="Switch Language"
           >
             {lang}
@@ -151,7 +153,7 @@ export default function Navbar() {
           {/* Currency Switcher - Styled as Circle */}
           <button
             onClick={toggleCurrency}
-            className="w-10 h-10 rounded-full border border-gray-300 flex items-center justify-center text-[11px] font-sans font-bold text-black hover:bg-black hover:text-white hover:border-black transition-all cursor-pointer bg-white"
+            className="hidden sm:flex w-10 h-10 rounded-full border border-gray-300 items-center justify-center text-[11px] font-sans font-bold text-black hover:bg-black hover:text-white hover:border-black transition-all cursor-pointer bg-white"
             title="Switch Currency"
           >
             {currency === "USD" ? "$" : "Rp"}
@@ -212,6 +214,22 @@ export default function Navbar() {
               >
                 FAQs
               </a>
+              
+              {/* Language & Currency Switcher inside drawer (visible only on mobile) */}
+              <div className="flex sm:hidden items-center gap-3 pt-3 border-t border-gray-100">
+                <button
+                  onClick={toggleLanguage}
+                  className="w-10 h-10 rounded-full border border-gray-300 flex items-center justify-center text-[12px] font-sans font-bold text-black hover:bg-black hover:text-white hover:border-black transition-all cursor-pointer bg-white"
+                >
+                  {lang}
+                </button>
+                <button
+                  onClick={toggleCurrency}
+                  className="w-10 h-10 rounded-full border border-gray-300 flex items-center justify-center text-[11px] font-sans font-bold text-black hover:bg-black hover:text-white hover:border-black transition-all cursor-pointer bg-white"
+                >
+                  {currency === "USD" ? "$" : "Rp"}
+                </button>
+              </div>
             </nav>
           </motion.div>
         )}

@@ -1,18 +1,103 @@
 "use client";
 
-import { useState } from "react";
-import { motion } from "motion/react";
-import { Check, Heart, Minus, Plus, Truck, X, MessageCircle, ChevronLeft } from "lucide-react";
+import { useState, useEffect } from "react";
+import { motion, AnimatePresence } from "motion/react";
+import { Check, Minus, Plus, ChevronLeft, ShoppingBag, ChevronDown, ChevronUp, Truck, Clock, Tag } from "lucide-react";
+import { productsData } from "@/components/Products";
 
-export default function ProductDetail() {
+export default function ProductDetail({ product }: { product: typeof productsData[0] }) {
   const [qty, setQty] = useState(1);
   const [activeImage, setActiveImage] = useState(0);
+  const [currency, setCurrency] = useState("USD");
+  const [isAdded, setIsAdded] = useState(false);
+  const [selectedSize, setSelectedSize] = useState("M");
+  const [isDescOpen, setIsDescOpen] = useState(true);
+  const [isShippingOpen, setIsShippingOpen] = useState(true);
 
-  const images = [
-    "https://images.unsplash.com/photo-1517336714731-489689fd1ca8?auto=format&fit=crop&q=80&w=1000",
-    "https://images.unsplash.com/photo-1531297172868-6cb31ee8000b?auto=format&fit=crop&q=80&w=1000",
-    "https://images.unsplash.com/photo-1525547719571-a2d4ac8945e2?auto=format&fit=crop&q=80&w=1000"
-  ];
+  const images = (product as any).images || [product.image];
+
+  const loadCurrency = () => {
+    if (typeof window !== "undefined") {
+      const savedCurrency = localStorage.getItem("glorious_currency") || "USD";
+      setCurrency(savedCurrency);
+    }
+  };
+
+  useEffect(() => {
+    loadCurrency();
+    window.addEventListener("currency-changed", loadCurrency);
+    return () => window.removeEventListener("currency-changed", loadCurrency);
+  }, []);
+
+  useEffect(() => {
+    setActiveImage(0);
+  }, [product.id]);
+
+  const getNumericPrice = (priceStr: string) => {
+    return parseFloat(priceStr.replace(/[^0-9.]/g, ""));
+  };
+
+  const formatPrice = (numeric: number) => {
+    if (currency === "IDR") {
+      const idrPrice = numeric * 15000;
+      return new Intl.NumberFormat("id-ID", {
+        style: "currency",
+        currency: "IDR",
+        maximumFractionDigits: 0
+      }).format(idrPrice);
+    }
+    return `$${numeric}`;
+  };
+
+  const unitPrice = getNumericPrice(product.price);
+  const wholesalePrice = unitPrice * 0.8;
+  const activeUnitPrice = qty >= 50 ? wholesalePrice : unitPrice;
+  const totalPrice = activeUnitPrice * qty;
+
+  const getEstimatedArrival = () => {
+    const today = new Date();
+    const start = new Date(today);
+    start.setDate(today.getDate() + 3);
+    const end = new Date(today);
+    end.setDate(today.getDate() + 5);
+    
+    const months = ["Januari", "Februari", "Maret", "April", "Mei", "Juni", "Juli", "Agustus", "September", "Oktober", "November", "Desember"];
+    return `${start.getDate()} - ${end.getDate()} ${months[start.getMonth()]} ${start.getFullYear()}`;
+  };
+
+  const addToCart = () => {
+    if (typeof window !== "undefined") {
+      const currentCart = JSON.parse(localStorage.getItem("glorious_cart") || "[]");
+      const existingItemIndex = currentCart.findIndex((item: any) => item.id === product.id);
+      
+      if (existingItemIndex > -1) {
+        currentCart[existingItemIndex].quantity = (currentCart[existingItemIndex].quantity || 1) + qty;
+      } else {
+        currentCart.push({
+          id: product.id,
+          name: product.name,
+          price: product.price,
+          image: product.image,
+          quantity: qty,
+          size: selectedSize
+        });
+      }
+      
+      localStorage.setItem("glorious_cart", JSON.stringify(currentCart));
+      window.dispatchEvent(new Event("cart-updated"));
+
+      setIsAdded(true);
+      setTimeout(() => {
+        setIsAdded(false);
+      }, 1500);
+    }
+  };
+
+  const orderWhatsApp = () => {
+    const text = `Halo BaliCraft, saya ingin memesan ${qty} pcs "${product.name}" (Ukuran: ${selectedSize}) dengan harga satuan ${formatPrice(activeUnitPrice)} (Total: ${formatPrice(totalPrice)}).\n\nMohon informasi ketersediaan barang dan metode pembayaran. Matur Suksma!`;
+    const url = `https://wa.me/628123456789?text=${encodeURIComponent(text)}`;
+    window.open(url, "_blank");
+  };
 
   return (
     <section className="w-full bg-white py-6 px-6 md:px-12 max-w-[1280px] mx-auto">
@@ -29,199 +114,243 @@ export default function ProductDetail() {
 
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-10">
         
-        {/* Left Column: Images (Col span 5) */}
-        <div className="lg:col-span-5 flex flex-col gap-4">
-          <div className="relative w-full aspect-square bg-transparent rounded-2xl overflow-hidden p-6 flex items-center justify-center">
-            <span className="absolute top-4 left-4 bg-gray-900 text-white text-[10px] font-bold px-3 py-1.5 rounded uppercase tracking-wider">New</span>
-            <button className="absolute top-4 right-4 w-10 h-10 bg-white rounded-full shadow-sm flex items-center justify-center text-gray-500 hover:text-red-500 transition-colors">
-              <Heart size={18} />
-            </button>
-            <motion.img 
-              key={activeImage}
-              initial={{ opacity: 0, scale: 0.95 }}
-              animate={{ opacity: 1, scale: 1 }}
-              transition={{ duration: 0.3 }}
+        {/* Left Column: Image & Thumbnails (Col span 6) */}
+        <div className="lg:col-span-6 flex flex-col gap-6">
+          <div className="relative w-full aspect-square flex items-center justify-center">
+            <img 
               src={images[activeImage]} 
-              alt="Product Image" 
-              className="w-full h-auto max-h-full object-contain drop-shadow-xl mix-blend-multiply"
+              alt={product.name} 
+              className="w-[80%] h-[80%] object-contain"
             />
+
+            {/* Success overlay animation */}
+            <AnimatePresence>
+              {isAdded && (
+                <motion.div
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                  className="absolute inset-0 bg-black/70 flex flex-col items-center justify-center z-10 text-white rounded-3xl"
+                >
+                  <motion.div
+                    initial={{ scale: 0.5 }}
+                    animate={{ scale: [1, 1.2, 1] }}
+                    transition={{ duration: 0.4 }}
+                    className="w-12 h-12 bg-white rounded-full flex items-center justify-center text-black shadow-lg mb-2"
+                  >
+                    <Check size={20} strokeWidth={3} />
+                  </motion.div>
+                  <span className="font-sans font-bold text-xs tracking-wider uppercase">Added to Cart!</span>
+                </motion.div>
+              )}
+            </AnimatePresence>
           </div>
           
-          <div className="grid grid-cols-4 gap-4">
-            {images.map((img, idx) => (
-              <button 
-                key={idx} 
-                onClick={() => setActiveImage(idx)}
-                className={`w-full aspect-square bg-transparent rounded-xl overflow-hidden border-2 transition-all p-2 ${activeImage === idx ? 'border-gray-900' : 'border-gray-100 hover:border-gray-200'}`}
-              >
-                <img src={img} alt={`Thumbnail ${idx}`} className="w-full h-full object-contain mix-blend-multiply" />
-              </button>
-            ))}
-          </div>
+          {images.length > 1 && (
+            <div className="flex gap-3 justify-center">
+              {images.map((img: string, idx: number) => (
+                <button 
+                  key={idx} 
+                  onClick={() => setActiveImage(idx)}
+                  className={`w-20 h-20 bg-white rounded-2xl overflow-hidden border-2 transition-all p-2 shadow-sm cursor-pointer ${activeImage === idx ? 'border-gray-950 scale-105 shadow-md' : 'border-gray-100 hover:border-gray-200'}`}
+                >
+                  <img src={img} alt={`Thumbnail ${idx}`} className="w-full h-full object-contain rounded-xl" />
+                </button>
+              ))}
+            </div>
+          )}
         </div>
 
-        {/* Middle Column: Product Info (Col span 4) */}
-        <div className="lg:col-span-4 flex flex-col">
+        {/* Right Column: Product Info (Col span 6) */}
+        <div className="lg:col-span-6 flex flex-col justify-center">
           <div className="flex items-center gap-2 mb-2">
-            <div className="flex text-yellow-400 text-sm">
-              ★★★★★
-            </div>
-            <span className="text-gray-400 text-sm">(5)</span>
+            <span className="bg-gray-50 border border-gray-200 text-gray-600 text-[10px] font-sans font-bold px-3 py-1 rounded-full uppercase tracking-wider">
+              {product.category}
+            </span>
           </div>
           
-          <h1 className="text-2xl md:text-3xl font-sans font-bold text-gray-900 tracking-tight leading-snug mb-4">
-            Pinnapple Macbook Pro 2022 M1 / 512GB Dark Grey
+          <h1 className="text-3xl md:text-4xl font-sans font-bold text-gray-900 tracking-tight leading-none mb-3">
+            {product.name}
           </h1>
-          
-          <div className="text-3xl font-sans font-bold text-gray-900 mb-6">
-            $579.00
+
+          {/* Pricing Info */}
+          <div className="flex flex-col gap-1.5 mb-5">
+            <div className="flex items-baseline gap-2">
+              <span className="text-3xl font-sans font-bold text-gray-900">
+                {formatPrice(activeUnitPrice)}
+              </span>
+              <span className="text-xs text-gray-500 font-semibold">/ unit</span>
+            </div>
+            
+            {/* Wholesale Pricing Info */}
+            <div className="text-xs font-sans text-gray-500 font-medium">
+              Grosir (Beli ≥ 50 pcs): <span className="font-bold text-gray-900">{formatPrice(wholesalePrice)} / unit</span>
+            </div>
+          </div>
+
+
+
+          {/* Size Selector */}
+          <div className="mb-6">
+            <p className="text-xs font-bold text-gray-900 mb-3 uppercase tracking-wider">Pilih Ukuran</p>
+            <div className="flex gap-2.5">
+              {["S", "M", "L"].map((size) => (
+                <button
+                  key={size}
+                  onClick={() => setSelectedSize(size)}
+                  className={`w-12 h-12 rounded-full font-sans font-semibold text-sm transition-all flex items-center justify-center cursor-pointer ${selectedSize === size ? 'bg-black text-white' : 'bg-gray-50 text-gray-600 hover:bg-gray-100'}`}
+                >
+                  {size}
+                </button>
+              ))}
+            </div>
           </div>
           
-          <ul className="flex flex-col gap-2.5 mb-6 text-sm text-gray-600 font-sans leading-relaxed">
-            <li className="flex items-start gap-2">
-              <span className="w-1.5 h-1.5 rounded-full bg-gray-400 mt-1.5 flex-shrink-0" />
-              Intel LGA 1700 Socket: Supports 13th & 12th Gen Intel Core
-            </li>
-            <li className="flex items-start gap-2">
-              <span className="w-1.5 h-1.5 rounded-full bg-gray-400 mt-1.5 flex-shrink-0" />
-              DDR5 Compatible: 4*SMD DIMMs with XMP 3.0 Memory
-            </li>
-            <li className="flex items-start gap-2">
-              <span className="w-1.5 h-1.5 rounded-full bg-gray-400 mt-1.5 flex-shrink-0" />
-              Commanding Power Design: Twin 16+1+2 Phases Digital VRM
-            </li>
-          </ul>
-          
-          <div className="inline-block bg-green-50 text-green-600 text-xs font-bold px-3 py-1.5 rounded mb-6 w-max uppercase tracking-wider">
-            Free Shipping
-          </div>
-          
-          <hr className="border-gray-100 mb-6" />
-          
-          <div className="flex items-center gap-2 text-green-600 text-sm font-semibold mb-4">
-            <Check size={16} strokeWidth={3} />
-            In stock
-          </div>
-          
-          <p className="text-sm font-bold text-gray-900 mb-3 uppercase">qty</p>
-          <div className="flex items-center gap-4 mb-8">
-            <div className="flex items-center border border-gray-200 rounded-lg w-32 h-12">
-              <button onClick={() => setQty(Math.max(1, qty - 1))} className="flex-1 flex items-center justify-center text-gray-600 hover:text-black transition-colors">
-                <Minus size={16} />
+          <p className="text-xs font-bold text-gray-900 mb-3 uppercase tracking-wider">Jumlah (Qty)</p>
+          <div className="flex flex-wrap items-center gap-4 mb-8">
+            {/* Qty Selector */}
+            <div className="flex items-center border border-gray-200 rounded-full w-32 h-12 bg-white">
+              <button 
+                onClick={() => setQty(Math.max(1, qty - 1))} 
+                className="flex-1 flex items-center justify-center text-gray-600 hover:text-black transition-colors"
+              >
+                <Minus size={14} />
               </button>
-              <span className="flex-1 text-center font-semibold text-gray-900">{qty}</span>
-              <button onClick={() => setQty(qty + 1)} className="flex-1 flex items-center justify-center text-gray-600 hover:text-black transition-colors">
-                <Plus size={16} />
+              <span className="flex-1 text-center font-semibold text-gray-900 text-sm">{qty}</span>
+              <button 
+                onClick={() => setQty(qty + 1)} 
+                className="flex-1 flex items-center justify-center text-gray-600 hover:text-black transition-colors"
+              >
+                <Plus size={14} />
               </button>
             </div>
             
-            <button className="flex-grow bg-[#14A800] hover:bg-green-700 text-white font-sans font-bold text-sm tracking-wide px-6 h-12 rounded-lg transition-colors shadow-sm">
-              ADD TO CART
+            {/* Add to Cart */}
+            <button 
+              onClick={addToCart}
+              className="flex-grow sm:flex-grow-0 bg-black hover:bg-gray-800 text-white font-sans font-bold text-xs tracking-wider px-8 h-12 rounded-full transition-colors flex items-center justify-center gap-2 uppercase cursor-pointer"
+            >
+              <ShoppingBag size={14} />
+              Add to Cart
+            </button>
+
+            {/* Order Now (WhatsApp) */}
+            <button 
+              onClick={orderWhatsApp}
+              className="flex-grow sm:flex-grow-0 bg-[#25D366] hover:bg-[#128C7E] text-white font-sans font-bold text-xs tracking-wider px-8 h-12 rounded-full transition-colors flex items-center justify-center gap-2 uppercase cursor-pointer"
+            >
+              <svg width="14" height="14" fill="currentColor" viewBox="0 0 24 24">
+                <path d="M12.012 2c-5.506 0-9.989 4.478-9.99 9.984a9.96 9.96 0 001.37 5.028L2 22l5.175-1.356a9.92 9.92 0 004.833 1.258h.005c5.507 0 9.991-4.479 9.992-9.986.002-2.668-1.037-5.176-2.927-7.067A9.921 9.921 0 0012.012 2z" />
+              </svg>
+              Pesan Langsung
+            </button>
+          </div>
+          
+          {/* Description & Fit Accordion */}
+          <div className="border border-gray-100 rounded-2xl overflow-hidden mb-4 w-full">
+            <button 
+              onClick={() => setIsDescOpen(!isDescOpen)}
+              className="w-full flex items-center justify-between p-4 bg-white hover:bg-gray-50/50 transition-colors text-left"
+            >
+              <span className="font-sans font-bold text-xs text-gray-900 uppercase tracking-wider">Deskripsi & Detail</span>
+              {isDescOpen ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
             </button>
             
-            <button className="w-12 h-12 bg-gray-100 rounded-full flex items-center justify-center text-gray-500 hover:bg-gray-200 transition-colors flex-shrink-0">
-              <Heart size={18} className="fill-current text-gray-400" />
+            <AnimatePresence initial={false}>
+              {isDescOpen && (
+                <motion.div
+                  initial={{ height: 0, opacity: 0 }}
+                  animate={{ height: "auto", opacity: 1 }}
+                  exit={{ height: 0, opacity: 0 }}
+                  transition={{ duration: 0.2 }}
+                  className="overflow-hidden"
+                >
+                  <div className="p-4 pt-0 text-sm text-gray-600 font-sans leading-relaxed border-t border-gray-50">
+                    <p className="mb-2 text-xs">Kerajinan tangan tradisional buatan Bali dengan detail estetik tinggi buatan pengrajin lokal asli. Menggunakan bahan ramah lingkungan yang tahan lama.</p>
+                    <ul className="list-disc pl-5 space-y-1 mt-2 text-[11px]">
+                      <li>Bahan: Alami / Premium lokal Bali</li>
+                      <li>100% Handmade / Buatan Tangan</li>
+                      <li>Finishing halus ramah lingkungan</li>
+                    </ul>
+                  </div>
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </div>
+
+          {/* Shipping Accordion */}
+          <div className="border border-gray-100 rounded-2xl overflow-hidden w-full">
+            <button 
+              onClick={() => setIsShippingOpen(!isShippingOpen)}
+              className="w-full flex items-center justify-between p-4 bg-white hover:bg-gray-50/50 transition-colors text-left"
+            >
+              <span className="font-sans font-bold text-xs text-gray-900 uppercase tracking-wider">Informasi Pengiriman</span>
+              {isShippingOpen ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
             </button>
+            
+            <AnimatePresence initial={false}>
+              {isShippingOpen && (
+                <motion.div
+                  initial={{ height: 0, opacity: 0 }}
+                  animate={{ height: "auto", opacity: 1 }}
+                  exit={{ height: 0, opacity: 0 }}
+                  transition={{ duration: 0.2 }}
+                  className="overflow-hidden"
+                >
+                  <div className="p-4 pt-0 border-t border-gray-50">
+                    <div className="grid grid-cols-2 gap-4">
+                      {/* Item 1 */}
+                      <div className="flex items-center gap-3">
+                        <div className="w-8 h-8 rounded-full bg-gray-50 flex items-center justify-center text-gray-900 shrink-0">
+                          <Tag size={14} />
+                        </div>
+                        <div>
+                          <p className="text-[9px] text-gray-400 uppercase font-bold">Diskon Grosir</p>
+                          <p className="text-xs text-gray-900 font-semibold">Potongan 20%</p>
+                        </div>
+                      </div>
+                      
+                      {/* Item 2 */}
+                      <div className="flex items-center gap-3">
+                        <div className="w-8 h-8 rounded-full bg-gray-50 flex items-center justify-center text-gray-900 shrink-0">
+                          <ShoppingBag size={14} />
+                        </div>
+                        <div>
+                          <p className="text-[9px] text-gray-400 uppercase font-bold">Kemasan</p>
+                          <p className="text-xs text-gray-900 font-semibold">Peti Kayu Aman</p>
+                        </div>
+                      </div>
+                      
+                      {/* Item 3 */}
+                      <div className="flex items-center gap-3">
+                        <div className="w-8 h-8 rounded-full bg-gray-50 flex items-center justify-center text-gray-900 shrink-0">
+                          <Clock size={14} />
+                        </div>
+                        <div>
+                          <p className="text-[9px] text-gray-400 uppercase font-bold">Waktu Kirim</p>
+                          <p className="text-xs text-gray-900 font-semibold">1-3 Hari Kerja</p>
+                        </div>
+                      </div>
+                      
+                      {/* Item 4 */}
+                      <div className="flex items-center gap-3">
+                        <div className="w-8 h-8 rounded-full bg-gray-50 flex items-center justify-center text-gray-900 shrink-0">
+                          <Truck size={14} />
+                        </div>
+                        <div>
+                          <p className="text-[9px] text-gray-400 uppercase font-bold">Estimasi Tiba</p>
+                          <p className="text-xs text-gray-900 font-semibold">{getEstimatedArrival()}</p>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </motion.div>
+              )}
+            </AnimatePresence>
           </div>
-          
-          <hr className="border-gray-100 mb-6" />
-          
-          <div className="flex flex-col gap-3 text-sm font-sans mb-8">
-            <div className="flex items-center gap-2">
-              <span className="font-bold text-gray-900 min-w-[90px]">SKU:</span>
-              <span className="text-gray-500">ABC025168</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <span className="font-bold text-gray-900 min-w-[90px]">CATEGORY:</span>
-              <span className="text-gray-500">Cell Phones & Tablets</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <span className="font-bold text-gray-900 min-w-[90px]">TAGS:</span>
-              <span className="text-gray-500">Laptop, Macbook, Computer, M1</span>
-            </div>
-          </div>
-          
-          <div className="flex items-center gap-3">
-            {/* Instagram */}
-            <a href="#" className="w-10 h-10 rounded-full bg-gray-50 flex items-center justify-center text-gray-500 hover:bg-gray-100 hover:text-black transition-colors" aria-label="Instagram">
-              <svg className="w-4 h-4 fill-none stroke-current" strokeWidth="2" viewBox="0 0 24 24" strokeLinecap="round" strokeLinejoin="round">
-                <rect x="2" y="2" width="20" height="20" rx="5" ry="5"></rect>
-                <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"></path>
-                <line x1="17.5" y1="6.5" x2="17.51" y2="6.5"></line>
-              </svg>
-            </a>
-            {/* Facebook */}
-            <a href="#" className="w-10 h-10 rounded-full bg-gray-50 flex items-center justify-center text-gray-500 hover:bg-gray-100 hover:text-black transition-colors" aria-label="Facebook">
-              <svg className="w-4 h-4 fill-current" viewBox="0 0 24 24">
-                <path d="M9 8H7v3h2v9h3v-9h3l.5-3H12V6c0-.88.39-1 1-1h2V2h-3c-2.9 0-5 1.55-5 4.5V8z"></path>
-              </svg>
-            </a>
-            {/* Twitter / X */}
-            <a href="#" className="w-10 h-10 rounded-full bg-gray-50 flex items-center justify-center text-gray-500 hover:bg-gray-100 hover:text-black transition-colors" aria-label="Twitter">
-              <svg className="w-4 h-4 fill-current" viewBox="0 0 24 24">
-                <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"></path>
-              </svg>
-            </a>
-            {/* WhatsApp */}
-            <a href="#" className="w-10 h-10 rounded-full bg-gray-50 flex items-center justify-center text-gray-500 hover:bg-gray-100 hover:text-black transition-colors" aria-label="WhatsApp">
-              <svg className="w-4 h-4 fill-none stroke-current" strokeWidth="2" viewBox="0 0 24 24" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"></path>
-              </svg>
-            </a>
-          </div>
+
         </div>
 
-        {/* Right Column: Cart/Brand (Col span 3) */}
-        <div className="lg:col-span-3 flex flex-col gap-6">
-          
-          {/* Brand Box */}
-          <div className="bg-gray-50 rounded-2xl p-6 flex flex-col items-center justify-center aspect-[4/3]">
-            <p className="text-sm text-gray-500 font-medium self-start mb-4">Brand: <span className="font-bold text-gray-900">Sonex</span></p>
-            <div className="flex-grow flex items-center justify-center w-full">
-              <h2 className="text-4xl font-black italic tracking-tighter text-gray-900">sonex</h2>
-            </div>
-          </div>
-          
-          {/* Your Cart Box */}
-          <div className="border border-green-500 rounded-2xl p-6 bg-white shadow-sm">
-            <h3 className="font-bold text-lg text-gray-900 mb-6">Your Cart</h3>
-            
-            <div className="flex gap-4 mb-6 relative">
-              <div className="w-16 h-16 bg-gray-50 rounded flex items-center justify-center p-2 flex-shrink-0">
-                <img src={images[0]} alt="Cart Item" className="w-full h-full object-contain mix-blend-multiply" />
-              </div>
-              <div className="flex flex-col">
-                <h4 className="text-sm font-bold text-gray-900 leading-tight pr-6">Pinnapple Macbook Pro 2022 M1/ 512GB</h4>
-                <p className="text-sm text-gray-500 mt-1">3 x $579.00</p>
-              </div>
-              <button className="absolute top-0 right-0 text-gray-400 hover:text-red-500">
-                <X size={16} />
-              </button>
-            </div>
-            
-            <hr className="border-gray-100 mb-6" />
-            
-            <div className="flex items-center justify-between mb-6">
-              <span className="text-gray-500 font-medium text-sm">Sub Total:</span>
-              <span className="text-gray-900 font-bold text-lg">$1,737.00</span>
-            </div>
-            
-            <div className="grid grid-cols-2 gap-3">
-              <button className="w-full py-3 rounded-lg bg-gray-900 hover:bg-black text-white font-bold text-xs tracking-wider transition-colors">
-                VIEW CART
-              </button>
-              <button className="w-full py-3 rounded-lg bg-[#14A800] hover:bg-green-700 text-white font-bold text-xs tracking-wider transition-colors">
-                CHECKOUT
-              </button>
-            </div>
-          </div>
-          
-          <div className="flex items-center gap-3 text-sm text-gray-600 bg-gray-50 p-4 rounded-xl">
-            <Truck size={18} className="text-gray-900" />
-            Ships from <span className="font-bold text-gray-900">United States</span>
-          </div>
-          
-        </div>
       </div>
     </section>
   );

@@ -35,20 +35,19 @@ export default function Footer() {
         {/* Top Section: Columns */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-12 gap-10">
           
-          {/* Column 1: Brand Info */}
           <motion.div variants={itemVariants} className="lg:col-span-4 flex flex-col gap-6">
-            <div className="flex items-center gap-2">
-              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" className="text-blue-600">
-                <path d="M12 4C7.58172 4 4 7.58172 4 12C4 16.4183 7.58172 20 12 20C16.4183 20 20 16.4183 20 12C20 7.58172 16.4183 4 12 4ZM2 12C2 6.47715 6.47715 2 12 2C17.5228 2 22 6.47715 22 12C22 17.5228 17.5228 22 12 22C6.47715 22 2 17.5228 2 12Z" fill="currentColor"/>
-                <path d="M14 12C14 13.1046 13.1046 14 12 14C10.8954 14 10 13.1046 10 12C10 10.8954 10.8954 10 12 10C13.1046 10 14 10.8954 14 12Z" fill="currentColor"/>
-                <path d="M7.5 12C7.5 14.4853 9.51472 16.5 12 16.5" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
-              </svg>
+            <div className="flex items-center gap-2.5">
+              <img 
+                src="/images/logo3.png" 
+                alt="AquariusBaliCraft Logo" 
+                className="w-12 h-12 object-contain shrink-0"
+              />
               <span className="text-2xl font-bold tracking-tight text-[#0f172a]">
-                Bali Bagus Building
+                AquariusBaliCraft
               </span>
             </div>
             <p className="text-sm text-gray-500 leading-relaxed max-w-[280px]">
-              Bali Bagus Building adalah toko kerajinan tangan terpercaya Anda di Bali. Menyediakan produk kerajinan berkualitas tinggi khas Bali untuk mempercantik ruangan Anda.
+              AquariusBaliCraft adalah toko kerajinan tangan terpercaya Anda di Bali. Menyediakan produk kerajinan berkualitas tinggi khas Bali untuk mempercantik ruangan Anda.
             </p>
           </motion.div>
 
@@ -147,7 +146,7 @@ export default function Footer() {
         {/* Bottom Section: Copyright */}
         <motion.div variants={itemVariants} className="flex flex-col sm:flex-row justify-between items-center gap-4 pt-12 border-t border-gray-100 mt-8">
           <p className="text-sm text-gray-500 font-medium">
-            Copyright © Bali Bagus Building 2026
+            Copyright © AquariusBaliCraft 2026
           </p>
           <div className="flex items-center gap-6">
             <a href="#" className="text-sm text-gray-500 hover:text-[#0f172a] font-medium transition-colors">Privacy Policy</a>

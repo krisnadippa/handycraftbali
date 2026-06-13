@@ -4,106 +4,122 @@ import { useState, useEffect } from "react";
 import { ShoppingBag } from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
 
-const productsData = [
+export const productsData = [
   {
     id: 1,
-    name: "Casual Shirt",
-    price: "$225",
+    name: "Topeng Kayu Barong",
+    price: "$120",
     image: "/images/prd1.jpg",
+    images: ["/images/prd1.jpg", "/images/prd5.jpg", "/images/prd9.jpg"],
+    category: "INTERIOR",
     initialWished: true,
     colSpan: "col-span-1",
   },
   {
     id: 2,
-    name: "Gray-Shirt",
-    price: "$125",
+    name: "Lampu Hias Rotan",
+    price: "$45",
     image: "/images/prd2.webp",
+    images: ["/images/prd2.webp", "/images/lamp.png", "/images/prd6.jpg"],
+    category: "LAMP",
     initialWished: false,
     colSpan: "col-span-1",
   },
   {
     id: 3,
-    name: "Leather Shoes",
-    price: "$125",
+    name: "Vas Keramik Terracotta",
+    price: "$35",
     image: "/images/prd3.webp",
+    images: ["/images/prd3.webp", "/images/vas.png", "/images/prd7.jpg"],
+    category: "VAS",
     initialWished: false,
     colSpan: "col-span-1",
   },
   {
     id: 4,
-    name: "Waterproof Jacket",
-    price: "$125",
+    name: "Patung Ganesha Kayu",
+    price: "$150",
     image: "/images/prd4.jpg",
+    images: ["/images/prd4.jpg", "/images/prd8.webp", "/images/prd12.webp"],
+    category: "WOOD",
     initialWished: false,
     colSpan: "col-span-1",
   },
   {
     id: 5,
-    name: "White Pants",
-    price: "$125",
+    name: "Tas Anyaman Ata",
+    price: "$25",
     image: "/images/prd5.jpg",
+    category: "INTERIOR",
     initialWished: false,
     colSpan: "col-span-1",
   },
   {
     id: 6,
-    name: "Galaxy Watch",
-    price: "$125",
+    name: "Lampu Bambu Estetik",
+    price: "$40",
     image: "/images/prd6.jpg",
+    category: "LAMP",
     initialWished: false,
     colSpan: "col-span-1",
   },
   {
     id: 7,
-    name: "Gery T-shrit",
-    price: "$25",
+    name: "Vas Bunga Tanah Liat",
+    price: "$15",
     image: "/images/prd7.jpg",
+    category: "VAS",
     initialWished: false,
     colSpan: "col-span-1",
   },
   {
     id: 8,
-    name: "Winter Jacket",
-    price: "$195",
+    name: "Keranjang Bambu Bali",
+    price: "$30",
     image: "/images/prd8.webp",
+    category: "WOOD",
     initialWished: false,
     colSpan: "col-span-1",
   },
   {
     id: 9,
-    name: "Canvas Bag",
-    price: "$85",
+    name: "Lukisan Tradisional Ubud",
+    price: "$200",
     image: "/images/prd9.jpg",
+    category: "INTERIOR",
     initialWished: false,
     colSpan: "col-span-1",
   },
   {
     id: 10,
-    name: "White Sneaker",
-    price: "$135",
+    name: "Lampu Gantung Makrame",
+    price: "$55",
     image: "/images/prd10.webp",
+    category: "LAMP",
     initialWished: false,
     colSpan: "col-span-1",
   },
   {
     id: 11,
-    name: "Gold Watch",
-    price: "$299",
+    name: "Mangkok Kayu Jati",
+    price: "$20",
     image: "/images/prd11.jpg",
+    category: "VAS",
     initialWished: false,
     colSpan: "col-span-1",
   },
   {
     id: 12,
-    name: "Denim Jacket",
-    price: "$155",
+    name: "Patung Buddha Semadi",
+    price: "$180",
     image: "/images/prd12.webp",
+    category: "WOOD",
     initialWished: false,
     colSpan: "col-span-1",
   },
 ];
 
-export default function Products({ limit }: { limit?: number }) {
+export default function Products({ limit, category, hideHeader = false }: { limit?: number; category?: string; hideHeader?: boolean }) {
   const [activeTab, setActiveTab] = useState("ALL");
   const [addingId, setAddingId] = useState<number | null>(null);
   const [currency, setCurrency] = useState("USD");
@@ -151,7 +167,11 @@ export default function Products({ limit }: { limit?: number }) {
     },
   };
 
-  const displayedProducts = limit ? productsData.slice(0, limit) : productsData;
+  const filtered = category
+    ? productsData.filter((p) => p.category === category)
+    : productsData;
+
+  const displayedProducts = limit ? filtered.slice(0, limit) : filtered;
 
   const addToCart = (product: typeof productsData[0]) => {
     if (typeof window !== "undefined") {
@@ -196,37 +216,40 @@ export default function Products({ limit }: { limit?: number }) {
         className="flex flex-col gap-8 w-full"
       >
         {/* Header Row */}
-        <motion.div variants={itemVariants} className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-          <h2 className="text-3xl md:text-4xl font-sans font-bold tracking-tight text-black">
-            Popular products
-          </h2>
+        {!hideHeader && (
+          <motion.div variants={itemVariants} className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            <h2 className="text-3xl md:text-4xl font-sans font-bold tracking-tight text-black">
+              Popular products
+            </h2>
 
-          {/* Filters */}
-          <div className="flex flex-wrap items-center gap-2">
-            {["ALL", "SHORTS", "JACKETS", "SHOES", "T-SHIRT"].map((tab) => {
-              const isActive = activeTab === tab;
-              return (
-                <button
-                  key={tab}
-                  onClick={() => setActiveTab(tab)}
-                  className={`px-6 py-2.5 rounded-full text-xs font-sans font-bold tracking-wider uppercase transition-all cursor-pointer ${
-                    isActive
-                      ? "bg-black text-white"
-                      : "bg-white text-gray-500 border border-gray-200 hover:border-black hover:text-black"
-                  }`}
-                >
-                  {tab}
-                </button>
-              );
-            })}
-          </div>
-        </motion.div>
+            {/* Filters */}
+            <div className="flex flex-wrap items-center gap-2">
+              {["ALL", "SHORTS", "JACKETS", "SHOES", "T-SHIRT"].map((tab) => {
+                const isActive = activeTab === tab;
+                return (
+                  <button
+                    key={tab}
+                    onClick={() => setActiveTab(tab)}
+                    className={`px-6 py-2.5 rounded-full text-xs font-sans font-bold tracking-wider uppercase transition-all cursor-pointer ${
+                      isActive
+                        ? "bg-black text-white"
+                        : "bg-white text-gray-500 border border-gray-200 hover:border-black hover:text-black"
+                    }`}
+                  >
+                    {tab}
+                  </button>
+                );
+              })}
+            </div>
+          </motion.div>
+        )}
 
         {/* Grid of Products */}
         <motion.div variants={containerVariants} className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6 w-full">
           {displayedProducts.map((product) => {
             return (
-              <motion.div
+              <motion.a
+                href="/product-detail"
                 variants={itemVariants}
                 whileHover={{ y: -5 }}
                 key={product.id}
@@ -297,15 +320,15 @@ export default function Products({ limit }: { limit?: number }) {
                 </div>
 
                 {/* Product Info */}
-                <a href="/product-detail" className="flex flex-col gap-1 px-1">
+                <div className="flex flex-col gap-1 px-1">
                   <h3 className="text-base font-sans font-semibold text-black tracking-tight leading-tight">
                     {product.name}
                   </h3>
                   <span className="text-sm font-sans font-medium text-gray-500">
                     {formatPrice(product.price)}
                   </span>
-                </a>
-              </motion.div>
+                </div>
+              </motion.a>
             );
           })}
         </motion.div>
