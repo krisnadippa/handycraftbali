@@ -42,7 +42,7 @@ export default function ProductDetail({ product }: { product: typeof productsDat
   const [isAdded, setIsAdded] = useState(false);
   const [selectedSize, setSelectedSize] = useState("M");
   const [selectedColor, setSelectedColor] = useState("Natural");
-  const [flyingImg, setFlyingImg] = useState<{ src: string; x: number; y: number } | null>(null);
+  const [showSuccessToast, setShowSuccessToast] = useState(false);
   const [isDescOpen, setIsDescOpen] = useState(true);
   const [isShippingOpen, setIsShippingOpen] = useState(true);
 
@@ -97,7 +97,7 @@ export default function ProductDetail({ product }: { product: typeof productsDat
     return `${start.getDate()} - ${end.getDate()} ${months[start.getMonth()]} ${start.getFullYear()}`;
   };
 
-  const addToCart = (startX?: number, startY?: number) => {
+  const addToCart = () => {
     if (typeof window !== "undefined") {
       const currentCart = JSON.parse(localStorage.getItem("glorious_cart") || "[]");
       const existingItemIndex = currentCart.findIndex(
@@ -123,18 +123,11 @@ export default function ProductDetail({ product }: { product: typeof productsDat
       localStorage.setItem("glorious_cart", JSON.stringify(currentCart));
       window.dispatchEvent(new Event("cart-updated"));
 
-      // Trigger Flying Animation
-      const x = startX || window.innerWidth / 2;
-      const y = startY || window.innerHeight / 2;
-      setFlyingImg({ src: product.image, x, y });
-
-      // Scroll to top smoothly
-      window.scrollTo({ top: 0, behavior: "smooth" });
-
+      // Trigger Success Toast
+      setShowSuccessToast(true);
       setTimeout(() => {
-        setFlyingImg(null);
-        window.dispatchEvent(new Event("open-cart"));
-      }, 900);
+        setShowSuccessToast(false);
+      }, 2000);
 
       setIsAdded(true);
       setTimeout(() => {
@@ -150,7 +143,8 @@ export default function ProductDetail({ product }: { product: typeof productsDat
   };
 
   return (
-    <section className="w-full bg-white py-6 px-6 md:px-12 max-w-[1280px] mx-auto">
+    <>
+      <section className="w-full bg-white py-6 px-6 md:px-12 max-w-[1280px] mx-auto">
       {/* Back to Products */}
       <div className="mb-6">
         <a 
@@ -305,7 +299,7 @@ export default function ProductDetail({ product }: { product: typeof productsDat
             
             {/* Add to Cart */}
             <button 
-              onClick={(e) => addToCart(e.clientX, e.clientY)}
+              onClick={addToCart}
               className="flex-grow sm:flex-grow-0 bg-black hover:bg-gray-800 text-white font-sans font-bold text-xs tracking-wider px-8 h-12 rounded-full transition-colors flex items-center justify-center gap-2 uppercase cursor-pointer"
             >
               <ShoppingBag size={14} />
@@ -432,36 +426,62 @@ export default function ProductDetail({ product }: { product: typeof productsDat
       </div>
     </section>
 
-    {/* Flying Cart Item Animation */}
-    {flyingImg && (
-      <motion.img
-        src={flyingImg.src}
-        initial={{
-          position: "fixed",
-          top: flyingImg.y - 40,
-          left: flyingImg.x - 40,
-          width: 80,
-          height: 80,
-          borderRadius: "50%",
-          zIndex: 9999,
-          objectFit: "cover",
-          opacity: 1,
-          scale: 1,
-        }}
-        animate={{
-          top: 20,
-          left: typeof window !== "undefined" ? window.innerWidth - 60 : 1000,
-          width: 15,
-          height: 15,
-          opacity: 0.1,
-          scale: 0.1,
-        }}
-        transition={{
-          duration: 0.9,
-          ease: [0.25, 1, 0.5, 1],
-        }}
-        className="pointer-events-none shadow-lg border border-white"
-      />
-    )}
+    {/* Premium Success Toast */}
+    <AnimatePresence>
+      {showSuccessToast && (
+        <>
+          {/* Dark blur backdrop */}
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 0.3 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 bg-black z-[9998]"
+          />
+          {/* Modal Dialog */}
+          <motion.div
+            initial={{ opacity: 0, scale: 0.9, y: "-40%", x: "-50%" }}
+            animate={{ opacity: 1, scale: 1, y: "-50%", x: "-50%" }}
+            exit={{ opacity: 0, scale: 0.9, y: "-40%", x: "-50%" }}
+            transition={{ type: "spring", damping: 25, stiffness: 300 }}
+            className="fixed top-1/2 left-1/2 z-[9999] bg-white/95 backdrop-blur-md border border-gray-100 p-8 rounded-[2rem] shadow-[0_20px_50px_rgba(0,0,0,0.12)] flex flex-col items-center justify-center gap-4 text-center max-w-[90%] w-[320px] text-black font-sans"
+          >
+            {/* Animated Cart & Green Checkmark */}
+            <div className="relative w-16 h-16 bg-[#E8F8F0] rounded-full flex items-center justify-center shrink-0">
+              <ShoppingBag size={28} className="text-[#25D366]" />
+              <motion.div
+                initial={{ scale: 0, opacity: 0 }}
+                animate={{ scale: 1, opacity: 1 }}
+                transition={{ delay: 0.2, type: "spring", stiffness: 200 }}
+                className="absolute -top-1 -right-1 bg-[#25D366] text-white w-7 h-7 rounded-full flex items-center justify-center border-4 border-white shadow-md"
+              >
+                <motion.svg
+                  width="12"
+                  height="12"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="4"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                >
+                  <motion.polyline
+                    points="20 6 9 17 4 12"
+                    initial={{ pathLength: 0 }}
+                    animate={{ pathLength: 1 }}
+                    transition={{ duration: 0.3, delay: 0.4 }}
+                  />
+                </motion.svg>
+              </motion.div>
+            </div>
+            
+            <div className="flex flex-col gap-1.5 mt-2">
+              <h4 className="text-base font-bold text-gray-900 uppercase tracking-wider">Added to Cart!</h4>
+              <p className="text-xs font-medium text-gray-500 leading-relaxed">Produk berhasil dimasukkan ke keranjang belanja Anda</p>
+            </div>
+          </motion.div>
+        </>
+      )}
+    </AnimatePresence>
+    </>
   );
 }
