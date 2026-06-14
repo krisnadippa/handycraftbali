@@ -364,12 +364,24 @@ export default function Navbar() {
                           <input
                             type="number"
                             min="1"
-                            value={item.quantity || 1}
+                            value={item.quantity === 0 ? "" : item.quantity || 1}
                             onChange={(e) => {
-                              const val = parseInt(e.target.value, 10);
-                              setCartItemQuantity(item.id, item.size, item.color, isNaN(val) ? 1 : Math.max(1, val));
+                              const raw = e.target.value;
+                              if (raw === "") {
+                                setCartItemQuantity(item.id, item.size, item.color, 0);
+                              } else {
+                                const val = parseInt(raw, 10);
+                                if (!isNaN(val)) {
+                                  setCartItemQuantity(item.id, item.size, item.color, val);
+                                }
+                              }
                             }}
-                            className="w-10 text-center font-bold text-xs focus:outline-none bg-transparent [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none border-0 p-0"
+                            onBlur={() => {
+                              if (!item.quantity || item.quantity < 1) {
+                                setCartItemQuantity(item.id, item.size, item.color, 1);
+                              }
+                            }}
+                            className="w-10 text-center font-bold text-[16px] focus:outline-none bg-transparent [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none border-0 p-0"
                           />
                           <button
                             onClick={() => updateQuantity(item.id, item.size, item.color, 1)}

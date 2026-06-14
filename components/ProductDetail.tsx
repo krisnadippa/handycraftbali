@@ -323,7 +323,7 @@ export default function ProductDetail({ product }: { product: typeof productsDat
                     setQty(1);
                   }
                 }}
-                className="w-12 text-center font-semibold text-gray-900 text-sm focus:outline-none bg-transparent [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none border-0 p-0"
+                className="w-12 text-center font-semibold text-gray-900 text-[16px] focus:outline-none bg-transparent [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none border-0 p-0"
               />
               <button 
                 onClick={() => setQty((Number(qty) || 1) + 1)} 

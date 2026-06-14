@@ -702,7 +702,7 @@ export default function Products({ limit, category, hideHeader = false }: { limi
               exit={{ y: "100%" }}
               transition={{ type: "spring", damping: 25, stiffness: 250 }}
               drag="y"
-              dragConstraints={{ top: 0 }}
+              dragConstraints={{ top: 0, bottom: 0 }}
               dragElastic={{ top: 0, bottom: 0.5 }}
               onDragEnd={(event, info) => {
                 if (info.offset.y > 150) {
@@ -851,7 +851,7 @@ export default function Products({ limit, category, hideHeader = false }: { limi
                             setDrawerQty(1);
                           }
                         }}
-                        className="w-12 text-center font-semibold text-gray-900 text-sm focus:outline-none bg-transparent [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none border-0 p-0"
+                        className="w-12 text-center font-semibold text-gray-900 text-[16px] focus:outline-none bg-transparent [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none border-0 p-0"
                       />
                       <button
                         onClick={() => setDrawerQty((Number(drawerQty) || 1) + 1)}
