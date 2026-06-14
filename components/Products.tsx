@@ -710,15 +710,31 @@ export default function Products({ limit, category, hideHeader = false }: { limi
                     {drawerProduct.name}
                   </h3>
                   <div className="flex flex-col mt-1.5">
-                    <span className="text-lg font-bold text-black">
-                      {formatPrice(
-                        (drawerQty >= 50
-                          ? parseFloat(drawerProduct.price.replace(/[^0-9.]/g, "")) * 0.8
-                          : parseFloat(drawerProduct.price.replace(/[^0-9.]/g, ""))
-                        ).toString()
-                      )}
-                      <span className="text-xs text-gray-500 font-semibold font-normal ml-1">/ unit</span>
-                    </span>
+                    {drawerQty >= 50 ? (
+                      <div className="flex items-baseline gap-1.5 flex-wrap">
+                        <span className="text-lg font-bold text-green-600">
+                          {formatPrice(
+                            (parseFloat(drawerProduct.price.replace(/[^0-9.]/g, "")) * 0.8).toString()
+                          )}
+                        </span>
+                        <span className="text-xs text-gray-500 line-through">
+                          {formatPrice(
+                            parseFloat(drawerProduct.price.replace(/[^0-9.]/g, "")).toString()
+                          )}
+                        </span>
+                        <span className="text-xs text-gray-500 font-semibold font-normal">/ unit</span>
+                        <span className="text-[9px] bg-green-50 text-green-700 px-1.5 py-0.5 rounded font-bold uppercase tracking-wider ml-1">
+                          Grosir 20% Off
+                        </span>
+                      </div>
+                    ) : (
+                      <span className="text-lg font-bold text-black">
+                        {formatPrice(
+                          parseFloat(drawerProduct.price.replace(/[^0-9.]/g, "")).toString()
+                        )}
+                        <span className="text-xs text-gray-500 font-semibold font-normal ml-1">/ unit</span>
+                      </span>
+                    )}
                     {parseFloat(drawerProduct.price.replace(/[^0-9.]/g, "")) && (
                       <span className="text-[10px] text-gray-500 font-medium">
                         Grosir (≥ 50 pcs): {formatPrice(

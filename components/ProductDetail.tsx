@@ -219,10 +219,27 @@ export default function ProductDetail({ product }: { product: typeof productsDat
           {/* Pricing Info */}
           <div className="flex flex-col gap-1.5 mb-5">
             <div className="flex items-baseline gap-2">
-              <span className="text-3xl font-sans font-bold text-gray-900">
-                {formatPrice(activeUnitPrice)}
-              </span>
-              <span className="text-xs text-gray-500 font-semibold">/ unit</span>
+              {qty >= 50 ? (
+                <div className="flex items-baseline gap-1.5 flex-wrap">
+                  <span className="text-3xl font-sans font-bold text-green-600">
+                    {formatPrice(wholesalePrice)}
+                  </span>
+                  <span className="text-sm text-gray-500 line-through">
+                    {formatPrice(unitPrice)}
+                  </span>
+                  <span className="text-xs text-gray-500 font-semibold font-normal">/ unit</span>
+                  <span className="text-[10px] bg-green-50 text-green-700 px-2 py-0.5 rounded-full font-bold uppercase tracking-wider ml-1">
+                    Grosir 20% Off
+                  </span>
+                </div>
+              ) : (
+                <>
+                  <span className="text-3xl font-sans font-bold text-gray-900">
+                    {formatPrice(activeUnitPrice)}
+                  </span>
+                  <span className="text-xs text-gray-500 font-semibold">/ unit</span>
+                </>
+              )}
             </div>
             
             {/* Wholesale Pricing Info */}

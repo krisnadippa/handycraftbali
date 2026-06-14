@@ -92,19 +92,28 @@ export default function Navbar() {
   const getSubtotal = () => {
     const subtotalUSD = cartItems.reduce((sum, item) => {
       const val = parseFloat(item.price.replace(/[^0-9.]/g, ""));
-      return sum + val * (item.quantity || 1);
+      const isWholesale = (item.quantity || 1) >= 50;
+      const currentPrice = isWholesale ? val * 0.8 : val;
+      return sum + currentPrice * (item.quantity || 1);
     }, 0);
     return formatPrice(`$${subtotalUSD}`);
   };
 
   const checkoutWhatsApp = () => {
-    let text = `Halo BaliCraft, saya ingin memesan produk kerajinan tangan berikut:\n\n`;
+    let text = `Halo AquariusBaliCraft, saya ingin memesan produk kerajinan tangan berikut:\n\n`;
     cartItems.forEach((item, index) => {
       const opts = [];
       if (item.size) opts.push(`Ukuran: ${item.size}`);
       if (item.color) opts.push(`Warna: ${item.color}`);
       const optsStr = opts.length > 0 ? ` [${opts.join(", ")}]` : "";
-      text += `${index + 1}. ${item.name}${optsStr} (${item.quantity}x) - ${formatPrice(item.price)}\n`;
+      
+      const numeric = parseFloat(item.price.replace(/[^0-9.]/g, ""));
+      const isWholesale = (item.quantity || 1) >= 50;
+      const currentPrice = isWholesale ? numeric * 0.8 : numeric;
+      const formattedPrice = formatPrice(currentPrice.toString());
+      const wholesaleTag = isWholesale ? " (Diskon Grosir 20% Off)" : "";
+
+      text += `${index + 1}. ${item.name}${optsStr} (${item.quantity}x) - ${formattedPrice}${wholesaleTag}\n`;
     });
     text += `\n*Total*: ${getSubtotal()}`;
     text += `\n\nMohon informasi ketersediaan barang dan metode pembayaran. Matur Suksma!`;
@@ -305,7 +314,32 @@ export default function Navbar() {
                           </div>
                         )}
 
-                        <span className="text-xs font-semibold text-gray-500">{formatPrice(item.price)}</span>
+                        {(() => {
+                          const numeric = parseFloat(item.price.replace(/[^0-9.]/g, ""));
+                          const isWholesale = (item.quantity || 1) >= 50;
+                          const currentPrice = isWholesale ? numeric * 0.8 : numeric;
+                          return (
+                            <div className="flex flex-col">
+                              {isWholesale ? (
+                                <div className="flex items-center gap-1.5 flex-wrap">
+                                  <span className="text-xs font-semibold text-red-500 line-through">
+                                    {formatPrice(item.price)}
+                                  </span>
+                                  <span className="text-xs font-bold text-green-600">
+                                    {formatPrice(currentPrice.toString())}
+                                  </span>
+                                  <span className="text-[9px] bg-green-50 text-green-700 px-1.5 py-0.5 rounded font-bold uppercase tracking-wider">
+                                    Grosir 20% Off
+                                  </span>
+                                </div>
+                              ) : (
+                                <span className="text-xs font-semibold text-gray-500">
+                                  {formatPrice(item.price)}
+                                </span>
+                              )}
+                            </div>
+                          );
+                        })()}
                         
                         {/* Qty Controls */}
                         <div className="flex items-center gap-2.5 mt-1">
