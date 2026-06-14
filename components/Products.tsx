@@ -714,6 +714,9 @@ export default function Products({ limit, category, hideHeader = false }: { limi
               {/* Drag Handle Indicator */}
               <div className="w-12 h-1.5 bg-gray-200 rounded-full mx-auto mb-6 cursor-pointer" onClick={() => setDrawerProduct(null)} />
 
+              {/* Bottom solid white block extension to prevent leak during drag or bounce */}
+              <div className="absolute top-[99%] left-0 right-0 h-[100vh] bg-white pointer-events-none" />
+
               {/* Header Info */}
               <div className="flex gap-4 items-start pb-6 border-b border-gray-100">
                 <img
