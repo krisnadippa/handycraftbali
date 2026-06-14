@@ -219,7 +219,7 @@ export default function ProductDetail({ product }: { product: typeof productsDat
           {/* Pricing Info */}
           <div className="flex flex-col gap-1.5 mb-5">
             <div className="flex items-baseline gap-2">
-              {qty >= 50 ? (
+              {Number(qty) >= 50 ? (
                 <div className="flex items-baseline gap-1.5 flex-wrap">
                   <span className="text-3xl font-sans font-bold text-green-600">
                     {formatPrice(wholesalePrice)}
