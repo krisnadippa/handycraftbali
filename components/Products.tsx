@@ -230,12 +230,21 @@ export const productsData = [
 
 function ProductImage({ src, alt }: { src: string; alt: string }) {
   const [loaded, setLoaded] = useState(false);
+  const imgRef = useRef<HTMLImageElement>(null);
+
+  useEffect(() => {
+    if (imgRef.current && imgRef.current.complete) {
+      setLoaded(true);
+    }
+  }, [src]);
+
   return (
     <div className="relative w-full h-full flex items-center justify-center">
       {!loaded && (
         <div className="absolute inset-0 bg-neutral-100 animate-pulse rounded-[1.5rem] md:rounded-[2rem]" />
       )}
       <img
+        ref={imgRef}
         src={src}
         alt={alt}
         onLoad={() => setLoaded(true)}

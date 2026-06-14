@@ -1,15 +1,20 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "motion/react";
 import { Check, Minus, Plus, ChevronLeft, ShoppingBag, ChevronDown, ChevronUp, Truck, Clock, Tag } from "lucide-react";
 import { productsData } from "@/components/Products";
 
 function DetailImage({ src, alt }: { src: string; alt: string }) {
   const [loaded, setLoaded] = useState(false);
+  const imgRef = useRef<HTMLImageElement>(null);
 
   useEffect(() => {
     setLoaded(false);
+    // If browser already loaded/cached it, mark as loaded
+    if (imgRef.current && imgRef.current.complete) {
+      setLoaded(true);
+    }
   }, [src]);
 
   return (
@@ -18,6 +23,7 @@ function DetailImage({ src, alt }: { src: string; alt: string }) {
         <div className="absolute inset-0 bg-neutral-100 animate-pulse rounded-3xl" />
       )}
       <img
+        ref={imgRef}
         src={src}
         alt={alt}
         onLoad={() => setLoaded(true)}
