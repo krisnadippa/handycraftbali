@@ -51,6 +51,12 @@ export const metadata: Metadata = {
   },
 };
 
+export const viewport = {
+  width: "device-width",
+  initialScale: 1,
+  interactiveWidget: "overlays-content",
+};
+
 import SmoothScroll from "@/components/SmoothScroll";
 
 export default function RootLayout({
