@@ -729,7 +729,7 @@ export default function Products({ limit, category, hideHeader = false }: { limi
                     {drawerProduct.name}
                   </h3>
                   <div className="flex flex-col mt-1.5">
-                    {drawerQty >= 50 ? (
+                    {Number(drawerQty) >= 50 ? (
                       <div className="flex items-baseline gap-1.5 flex-wrap">
                         <span className="text-lg font-bold text-green-600">
                           {formatPrice(
