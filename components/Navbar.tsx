@@ -51,9 +51,9 @@ export default function Navbar() {
     }
   };
 
-  const updateQuantity = (id: number, delta: number) => {
+  const updateQuantity = (id: number, size: string | undefined, color: string | undefined, delta: number) => {
     const updated = cartItems.map((item) => {
-      if (item.id === id) {
+      if (item.id === id && item.size === size && item.color === color) {
         const newQty = (item.quantity || 1) + delta;
         return newQty > 0 ? { ...item, quantity: newQty } : null;
       }
@@ -64,8 +64,8 @@ export default function Navbar() {
     window.dispatchEvent(new Event("cart-updated"));
   };
 
-  const removeItem = (id: number) => {
-    const updated = cartItems.filter((item) => item.id !== id);
+  const removeItem = (id: number, size: string | undefined, color: string | undefined) => {
+    const updated = cartItems.filter((item) => !(item.id === id && item.size === size && item.color === color));
     localStorage.setItem("glorious_cart", JSON.stringify(updated));
     window.dispatchEvent(new Event("cart-updated"));
   };
@@ -94,12 +94,16 @@ export default function Navbar() {
   const checkoutWhatsApp = () => {
     let text = `Halo BaliCraft, saya ingin memesan produk kerajinan tangan berikut:\n\n`;
     cartItems.forEach((item, index) => {
-      text += `${index + 1}. ${item.name} (${item.quantity}x) - ${formatPrice(item.price)}\n`;
+      const opts = [];
+      if (item.size) opts.push(`Ukuran: ${item.size}`);
+      if (item.color) opts.push(`Warna: ${item.color}`);
+      const optsStr = opts.length > 0 ? ` [${opts.join(", ")}]` : "";
+      text += `${index + 1}. ${item.name}${optsStr} (${item.quantity}x) - ${formatPrice(item.price)}\n`;
     });
     text += `\n*Total*: ${getSubtotal()}`;
     text += `\n\nMohon informasi ketersediaan barang dan metode pembayaran. Matur Suksma!`;
 
-    const url = `https://wa.me/628123456789?text=${encodeURIComponent(text)}`;
+    const url = `https://wa.me/6281339711438?text=${encodeURIComponent(text)}`;
     window.open(url, "_blank");
   };
 
@@ -277,7 +281,7 @@ export default function Navbar() {
                   </div>
                 ) : (
                   cartItems.map((item) => (
-                    <div key={item.id} className="flex gap-4 p-3 rounded-2xl bg-[#F9F9F9] items-center">
+                    <div key={`${item.id}-${item.size || ""}-${item.color || ""}`} className="flex gap-4 p-3 rounded-2xl bg-[#F9F9F9] items-center">
                       <img
                         src={item.image}
                         alt={item.name}
@@ -285,19 +289,29 @@ export default function Navbar() {
                       />
                       <div className="flex-grow flex flex-col gap-1">
                         <h3 className="text-sm font-bold text-black leading-snug">{item.name}</h3>
+                        
+                        {/* Selected options info */}
+                        {(item.size || item.color) && (
+                          <div className="text-[10px] font-medium text-gray-500 flex flex-wrap gap-x-2 gap-y-0.5 my-0.5">
+                            {item.size && <span>Ukuran: <span className="font-bold text-gray-700">{item.size}</span></span>}
+                            {item.size && item.color && <span>|</span>}
+                            {item.color && <span>Warna: <span className="font-bold text-gray-700">{item.color}</span></span>}
+                          </div>
+                        )}
+
                         <span className="text-xs font-semibold text-gray-500">{formatPrice(item.price)}</span>
                         
                         {/* Qty Controls */}
                         <div className="flex items-center gap-2.5 mt-1">
                           <button
-                            onClick={() => updateQuantity(item.id, -1)}
+                            onClick={() => updateQuantity(item.id, item.size, item.color, -1)}
                             className="w-6 h-6 rounded-full border border-gray-300 flex items-center justify-center hover:bg-black hover:text-white transition-colors cursor-pointer"
                           >
                             <Minus size={10} />
                           </button>
                           <span className="text-xs font-bold w-4 text-center">{item.quantity || 1}</span>
                           <button
-                            onClick={() => updateQuantity(item.id, 1)}
+                            onClick={() => updateQuantity(item.id, item.size, item.color, 1)}
                             className="w-6 h-6 rounded-full border border-gray-300 flex items-center justify-center hover:bg-black hover:text-white transition-colors cursor-pointer"
                           >
                             <Plus size={10} />
@@ -307,7 +321,7 @@ export default function Navbar() {
                       
                       {/* Delete */}
                       <button
-                        onClick={() => removeItem(item.id)}
+                        onClick={() => removeItem(item.id, item.size, item.color)}
                         className="text-gray-400 hover:text-red-500 p-2 cursor-pointer transition-colors"
                         title="Remove"
                       >

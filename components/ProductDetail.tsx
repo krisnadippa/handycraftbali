@@ -41,6 +41,7 @@ export default function ProductDetail({ product }: { product: typeof productsDat
   const [currency, setCurrency] = useState("USD");
   const [isAdded, setIsAdded] = useState(false);
   const [selectedSize, setSelectedSize] = useState("M");
+  const [selectedColor, setSelectedColor] = useState("Natural");
   const [isDescOpen, setIsDescOpen] = useState(true);
   const [isShippingOpen, setIsShippingOpen] = useState(true);
 
@@ -98,18 +99,23 @@ export default function ProductDetail({ product }: { product: typeof productsDat
   const addToCart = () => {
     if (typeof window !== "undefined") {
       const currentCart = JSON.parse(localStorage.getItem("glorious_cart") || "[]");
-      const existingItemIndex = currentCart.findIndex((item: any) => item.id === product.id);
+      const existingItemIndex = currentCart.findIndex(
+        (item: any) => item.id === product.id && item.size === selectedSize && item.color === selectedColor
+      );
       
       if (existingItemIndex > -1) {
         currentCart[existingItemIndex].quantity = (currentCart[existingItemIndex].quantity || 1) + qty;
+        const updatedItem = currentCart.splice(existingItemIndex, 1)[0];
+        currentCart.unshift(updatedItem);
       } else {
-        currentCart.push({
+        currentCart.unshift({
           id: product.id,
           name: product.name,
           price: product.price,
           image: product.image,
           quantity: qty,
-          size: selectedSize
+          size: selectedSize,
+          color: selectedColor
         });
       }
       
@@ -124,8 +130,8 @@ export default function ProductDetail({ product }: { product: typeof productsDat
   };
 
   const orderWhatsApp = () => {
-    const text = `Halo BaliCraft, saya ingin memesan ${qty} pcs "${product.name}" (Ukuran: ${selectedSize}) dengan harga satuan ${formatPrice(activeUnitPrice)} (Total: ${formatPrice(totalPrice)}).\n\nMohon informasi ketersediaan barang dan metode pembayaran. Matur Suksma!`;
-    const url = `https://wa.me/628123456789?text=${encodeURIComponent(text)}`;
+    const text = `Halo BaliCraft, saya ingin memesan ${qty} pcs "${product.name}" (Ukuran: ${selectedSize}, Warna: ${selectedColor}) dengan harga satuan ${formatPrice(activeUnitPrice)} (Total: ${formatPrice(totalPrice)}).\n\nMohon informasi ketersediaan barang dan metode pembayaran. Matur Suksma!`;
+    const url = `https://wa.me/6281339711438?text=${encodeURIComponent(text)}`;
     window.open(url, "_blank");
   };
 
@@ -232,6 +238,35 @@ export default function ProductDetail({ product }: { product: typeof productsDat
                   {size}
                 </button>
               ))}
+            </div>
+          </div>
+
+          {/* Color Selector */}
+          <div className="mb-6">
+            <p className="text-xs font-bold text-gray-900 mb-3 uppercase tracking-wider">Pilih Warna</p>
+            <div className="flex items-center gap-3">
+              {[
+                { name: "Natural", class: "bg-[#D9B48F]" },
+                { name: "Hitam", class: "bg-[#1A1A1A]" },
+                { name: "Terracotta", class: "bg-[#C86446]" },
+                { name: "White Wash", class: "bg-[#EAE8E4] border border-gray-300" }
+              ].map((color) => (
+                <button
+                  key={color.name}
+                  onClick={() => setSelectedColor(color.name)}
+                  className={`relative w-10 h-10 rounded-full cursor-pointer transition-all flex items-center justify-center ${color.class} ${
+                    selectedColor === color.name ? "ring-2 ring-black ring-offset-2 scale-105" : "hover:scale-105"
+                  }`}
+                  title={color.name}
+                >
+                  {selectedColor === color.name && (
+                    <Check size={14} className={color.name === "White Wash" ? "text-black" : "text-white"} />
+                  )}
+                </button>
+              ))}
+              <span className="text-xs font-semibold text-gray-500 ml-1">
+                {selectedColor}
+              </span>
             </div>
           </div>
           

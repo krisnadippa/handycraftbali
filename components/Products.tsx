@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
-import { ShoppingBag } from "lucide-react";
+import { ShoppingBag, X, Minus, Plus, Check } from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
 import Link from "next/link";
 
@@ -262,6 +262,17 @@ export default function Products({ limit, category, hideHeader = false }: { limi
   const [currency, setCurrency] = useState("USD");
   const [currentPage, setCurrentPage] = useState(1);
 
+  // Sort & Search state
+  const [activeSort, setActiveSort] = useState("NEW ARRIVALS");
+  const [searchQuery, setSearchQuery] = useState("");
+
+  // Bottom drawer state
+  const [drawerProduct, setDrawerProduct] = useState<typeof productsData[0] | null>(null);
+  const [drawerSize, setDrawerSize] = useState("M");
+  const [drawerColor, setDrawerColor] = useState("Natural");
+  const [drawerQty, setDrawerQty] = useState(1);
+  const [drawerActionType, setDrawerActionType] = useState<"cart" | "whatsapp">("cart");
+
   const loadCurrency = () => {
     if (typeof window !== "undefined") {
       const savedCurrency = localStorage.getItem("glorious_currency") || "USD";
@@ -272,7 +283,72 @@ export default function Products({ limit, category, hideHeader = false }: { limi
   useEffect(() => {
     loadCurrency();
     window.addEventListener("currency-changed", loadCurrency);
-    return () => window.removeEventListener("currency-changed", loadCurrency);
+
+    if (typeof window !== "undefined") {
+      const params = new URLSearchParams(window.location.search);
+      const catParam = params.get("category");
+      if (catParam) {
+        setActiveTab(catParam.toUpperCase());
+      }
+      const sortParam = params.get("sort");
+      if (sortParam) {
+        setActiveSort(sortParam.toUpperCase());
+      }
+      const searchParam = params.get("search");
+      if (searchParam && searchParam !== "focus") {
+        setSearchQuery(searchParam);
+      }
+      
+      if (catParam || sortParam || (searchParam && searchParam !== "focus")) {
+        setTimeout(() => {
+          const element = document.getElementById("produk");
+          if (element) {
+            element.scrollIntoView({ behavior: "smooth" });
+          }
+        }, 300);
+      }
+    }
+    
+    const handleFilterCategory = (e: Event) => {
+      const cat = (e as CustomEvent).detail;
+      if (cat) {
+        setActiveTab(cat.toUpperCase());
+        const element = document.getElementById("produk");
+        if (element) {
+          element.scrollIntoView({ behavior: "smooth" });
+        }
+      }
+    };
+    window.addEventListener("filter-category", handleFilterCategory);
+
+    const handleFilterSort = (e: Event) => {
+      const sortVal = (e as CustomEvent).detail;
+      if (sortVal) {
+        setActiveSort(sortVal.toUpperCase());
+        const element = document.getElementById("produk");
+        if (element) {
+          element.scrollIntoView({ behavior: "smooth" });
+        }
+      }
+    };
+    window.addEventListener("filter-sort", handleFilterSort);
+
+    const handleSearchProducts = (e: Event) => {
+      const query = (e as CustomEvent).detail;
+      setSearchQuery(query || "");
+      const element = document.getElementById("produk");
+      if (element) {
+        element.scrollIntoView({ behavior: "smooth" });
+      }
+    };
+    window.addEventListener("search-products", handleSearchProducts);
+
+    return () => {
+      window.removeEventListener("currency-changed", loadCurrency);
+      window.removeEventListener("filter-category", handleFilterCategory);
+      window.removeEventListener("filter-sort", handleFilterSort);
+      window.removeEventListener("search-products", handleSearchProducts);
+    };
   }, []);
 
   const isFirstMount = useRef(true);
@@ -325,11 +401,22 @@ export default function Products({ limit, category, hideHeader = false }: { limi
     },
   };
 
-  const filtered = productsData.filter((p) => {
+  let filtered = productsData.filter((p) => {
     if (category && p.category !== category) return false;
     if (activeTab !== "ALL" && p.category !== activeTab) return false;
+    if (searchQuery && !p.name.toLowerCase().includes(searchQuery.toLowerCase())) return false;
     return true;
   });
+
+  // Apply activeSort sorting rules
+  if (activeSort === "BEST SELLERS") {
+    filtered = [...filtered].sort((a, b) => (b.id % 3) - (a.id % 3));
+  } else if (activeSort === "TOP RATED") {
+    filtered = [...filtered].sort((a, b) => (b.id % 2) - (a.id % 2));
+  } else if (activeSort === "PROMO & DISCOUNTS") {
+    // Show only even products as promo
+    filtered = filtered.filter((p) => p.id % 2 === 0);
+  }
 
   const itemsPerPage = 12;
   const totalPages = Math.ceil(filtered.length / itemsPerPage);
@@ -337,20 +424,26 @@ export default function Products({ limit, category, hideHeader = false }: { limi
 
   const displayedProducts = limit ? filtered.slice(0, limit) : filtered.slice(startIndex, startIndex + itemsPerPage);
 
-  const addToCart = (product: typeof productsData[0]) => {
+  const addToCart = (product: typeof productsData[0], size: string = "M", color: string = "Natural", qty: number = 1) => {
     if (typeof window !== "undefined") {
       const currentCart = JSON.parse(localStorage.getItem("glorious_cart") || "[]");
-      const existingItemIndex = currentCart.findIndex((item: any) => item.id === product.id);
+      const existingItemIndex = currentCart.findIndex(
+        (item: any) => item.id === product.id && item.size === size && item.color === color
+      );
       
       if (existingItemIndex > -1) {
-        currentCart[existingItemIndex].quantity = (currentCart[existingItemIndex].quantity || 1) + 1;
+        currentCart[existingItemIndex].quantity = (currentCart[existingItemIndex].quantity || 1) + qty;
+        const updatedItem = currentCart.splice(existingItemIndex, 1)[0];
+        currentCart.unshift(updatedItem);
       } else {
-        currentCart.push({
+        currentCart.unshift({
           id: product.id,
           name: product.name,
           price: product.price,
           image: product.image,
-          quantity: 1
+          quantity: qty,
+          size: size,
+          color: color
         });
       }
       
@@ -361,13 +454,23 @@ export default function Products({ limit, category, hideHeader = false }: { limi
       setTimeout(() => {
         setAddingId(null);
       }, 1500);
+      setDrawerProduct(null);
     }
   };
 
-  const orderWhatsApp = (product: typeof productsData[0]) => {
-    const text = `Hi Nextgen, I want to order "${product.name}" for ${formatPrice(product.price)}.`;
-    const url = `https://wa.me/628123456789?text=${encodeURIComponent(text)}`;
+  const orderWhatsApp = (product: typeof productsData[0], size: string = "M", color: string = "Natural", qty: number = 1) => {
+    const numeric = parseFloat(product.price.replace(/[^0-9.]/g, ""));
+    const wholesalePrice = numeric * 0.8;
+    const activeUnitPrice = qty >= 50 ? wholesalePrice : numeric;
+    const totalPrice = activeUnitPrice * qty;
+
+    const formattedUnitPrice = formatPrice(activeUnitPrice.toString());
+    const formattedTotalPrice = formatPrice(totalPrice.toString());
+
+    const text = `Halo BaliCraft, saya ingin memesan ${qty} pcs "${product.name}" (Ukuran: ${size}, Warna: ${color}) dengan harga satuan ${formattedUnitPrice} (Total: ${formattedTotalPrice}).\n\nMohon informasi ketersediaan barang dan metode pembayaran. Matur Suksma!`;
+    const url = `https://wa.me/6281339711438?text=${encodeURIComponent(text)}`;
     window.open(url, "_blank");
+    setDrawerProduct(null);
   };
 
   return (
@@ -442,7 +545,11 @@ export default function Products({ limit, category, hideHeader = false }: { limi
                         onClick={(e) => {
                           e.preventDefault();
                           e.stopPropagation();
-                          addToCart(product);
+                          setDrawerProduct(product);
+                          setDrawerSize("M");
+                          setDrawerColor("Natural");
+                          setDrawerQty(1);
+                          setDrawerActionType("cart");
                         }}
                         className="flex-grow flex items-center justify-center gap-1 md:gap-2 bg-white text-black hover:bg-black hover:text-white font-sans font-bold text-[9px] min-[375px]:text-[10px] md:text-[11px] py-1.5 md:py-2.5 px-1.5 md:px-3 rounded-full shadow-md transition-all cursor-pointer"
                       >
@@ -456,7 +563,11 @@ export default function Products({ limit, category, hideHeader = false }: { limi
                         onClick={(e) => {
                           e.preventDefault();
                           e.stopPropagation();
-                          orderWhatsApp(product);
+                          setDrawerProduct(product);
+                          setDrawerSize("M");
+                          setDrawerColor("Natural");
+                          setDrawerQty(1);
+                          setDrawerActionType("whatsapp");
                         }}
                         className="w-7 h-7 md:w-9 md:h-9 flex items-center justify-center bg-[#25D366] text-white hover:bg-[#128C7E] rounded-full shadow-md transition-all cursor-pointer"
                         title="Order via WhatsApp"
@@ -553,6 +664,176 @@ export default function Products({ limit, category, hideHeader = false }: { limi
           </div>
         )}
       </motion.div>
+
+      {/* Bottom Sheet Drawer */}
+      <AnimatePresence>
+        {drawerProduct && (
+          <>
+            {/* Backdrop */}
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 0.4 }}
+              exit={{ opacity: 0 }}
+              onClick={() => setDrawerProduct(null)}
+              className="fixed inset-0 bg-black z-50 cursor-pointer"
+            />
+            {/* Drawer container */}
+            <motion.div
+              initial={{ y: "100%" }}
+              animate={{ y: 0 }}
+              exit={{ y: "100%" }}
+              transition={{ type: "spring", damping: 25, stiffness: 250 }}
+              className="fixed bottom-0 left-0 right-0 max-h-[85vh] overflow-y-auto bg-white rounded-t-[2.5rem] shadow-[0_-10px_30px_rgba(0,0,0,0.15)] z-50 px-6 py-8 md:px-12 font-sans text-black"
+            >
+              {/* Drag Handle Indicator */}
+              <div className="w-12 h-1.5 bg-gray-200 rounded-full mx-auto mb-6 cursor-pointer" onClick={() => setDrawerProduct(null)} />
+
+              {/* Header Info */}
+              <div className="flex gap-4 items-start pb-6 border-b border-gray-100">
+                <img
+                  src={drawerProduct.image}
+                  alt={drawerProduct.name}
+                  className="w-20 h-20 md:w-24 md:h-24 rounded-2xl object-cover bg-gray-100 border border-gray-100"
+                />
+                <div className="flex-grow">
+                  <div className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-0.5">
+                    {drawerProduct.category}
+                  </div>
+                  <h3 className="text-lg md:text-xl font-bold text-gray-900 tracking-tight leading-snug">
+                    {drawerProduct.name}
+                  </h3>
+                  <div className="flex flex-col mt-1.5">
+                    <span className="text-lg font-bold text-black">
+                      {formatPrice(
+                        (drawerQty >= 50
+                          ? parseFloat(drawerProduct.price.replace(/[^0-9.]/g, "")) * 0.8
+                          : parseFloat(drawerProduct.price.replace(/[^0-9.]/g, ""))
+                        ).toString()
+                      )}
+                      <span className="text-xs text-gray-500 font-semibold font-normal ml-1">/ unit</span>
+                    </span>
+                    {parseFloat(drawerProduct.price.replace(/[^0-9.]/g, "")) && (
+                      <span className="text-[10px] text-gray-500 font-medium">
+                        Grosir (≥ 50 pcs): {formatPrice(
+                          (parseFloat(drawerProduct.price.replace(/[^0-9.]/g, "")) * 0.8).toString()
+                        )}
+                      </span>
+                    )}
+                  </div>
+                </div>
+                <button
+                  onClick={() => setDrawerProduct(null)}
+                  className="w-8 h-8 rounded-full bg-gray-50 hover:bg-gray-100 transition-colors flex items-center justify-center cursor-pointer text-gray-500"
+                >
+                  <X size={18} />
+                </button>
+              </div>
+
+              {/* Options Selectors */}
+              <div className="py-6 flex flex-col gap-6">
+                {/* Size Selector */}
+                <div>
+                  <p className="text-xs font-bold text-gray-900 mb-3 uppercase tracking-wider">Pilih Ukuran</p>
+                  <div className="flex gap-2.5">
+                    {["S", "M", "L"].map((size) => (
+                      <button
+                        key={size}
+                        onClick={() => setDrawerSize(size)}
+                        className={`w-11 h-11 rounded-full font-sans font-semibold text-xs transition-all flex items-center justify-center cursor-pointer ${
+                          drawerSize === size
+                            ? "bg-black text-white"
+                            : "bg-gray-50 text-gray-600 hover:bg-gray-100"
+                        }`}
+                      >
+                        {size}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Color Selector */}
+                <div>
+                  <p className="text-xs font-bold text-gray-900 mb-3 uppercase tracking-wider">Pilih Warna</p>
+                  <div className="flex items-center gap-3">
+                    {[
+                      { name: "Natural", class: "bg-[#D9B48F]" },
+                      { name: "Hitam", class: "bg-[#1A1A1A]" },
+                      { name: "Terracotta", class: "bg-[#C86446]" },
+                      { name: "White Wash", class: "bg-[#EAE8E4] border border-gray-300" }
+                    ].map((color) => (
+                      <button
+                        key={color.name}
+                        onClick={() => setDrawerColor(color.name)}
+                        className={`relative w-10 h-10 rounded-full cursor-pointer transition-all flex items-center justify-center ${color.class} ${
+                          drawerColor === color.name ? "ring-2 ring-black ring-offset-2 scale-105" : "hover:scale-105"
+                        }`}
+                        title={color.name}
+                      >
+                        {drawerColor === color.name && (
+                          <Check size={14} className={color.name === "White Wash" ? "text-black" : "text-white"} />
+                        )}
+                      </button>
+                    ))}
+                    <span className="text-xs font-semibold text-gray-500 ml-1">
+                      {drawerColor}
+                    </span>
+                  </div>
+                </div>
+
+                {/* Qty Selector */}
+                <div>
+                  <p className="text-xs font-bold text-gray-900 mb-3 uppercase tracking-wider">Jumlah (Qty)</p>
+                  <div className="flex items-center gap-4">
+                    <div className="flex items-center border border-gray-200 rounded-full w-32 h-11 bg-white">
+                      <button
+                        onClick={() => setDrawerQty(Math.max(1, drawerQty - 1))}
+                        className="flex-1 flex items-center justify-center text-gray-600 hover:text-black transition-colors"
+                      >
+                        <Minus size={14} />
+                      </button>
+                      <span className="flex-1 text-center font-semibold text-gray-900 text-sm">{drawerQty}</span>
+                      <button
+                        onClick={() => setDrawerQty(drawerQty + 1)}
+                        className="flex-1 flex items-center justify-center text-gray-600 hover:text-black transition-colors"
+                      >
+                        <Plus size={14} />
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Actions Footer */}
+              <div className="pt-6 border-t border-gray-100 flex gap-4">
+                <button
+                  onClick={() => addToCart(drawerProduct, drawerSize, drawerColor, drawerQty)}
+                  className={`flex-1 h-12 rounded-full font-sans font-bold text-xs tracking-wider transition-colors flex items-center justify-center gap-2 uppercase cursor-pointer ${
+                    drawerActionType === "cart"
+                      ? "bg-black hover:bg-gray-800 text-white"
+                      : "bg-gray-100 hover:bg-gray-200 text-black border border-gray-200"
+                  }`}
+                >
+                  <ShoppingBag size={14} />
+                  Add to Cart
+                </button>
+                <button
+                  onClick={() => orderWhatsApp(drawerProduct, drawerSize, drawerColor, drawerQty)}
+                  className={`flex-1 h-12 rounded-full transition-colors flex items-center justify-center gap-2 uppercase cursor-pointer font-sans font-bold text-xs tracking-wider text-white ${
+                    drawerActionType === "whatsapp"
+                      ? "bg-[#25D366] hover:bg-[#128C7E]"
+                      : "bg-gray-100 hover:bg-gray-200 text-black border border-gray-200"
+                  }`}
+                >
+                  <svg width="14" height="14" fill="currentColor" viewBox="0 0 24 24">
+                    <path d="M12.012 2c-5.506 0-9.989 4.478-9.99 9.984a9.96 9.96 0 001.37 5.028L2 22l5.175-1.356a9.92 9.92 0 004.833 1.258h.005c5.507 0 9.991-4.479 9.992-9.986.002-2.668-1.037-5.176-2.927-7.067A9.921 9.921 0 0012.012 2z" />
+                  </svg>
+                  Pesan Langsung
+                </button>
+              </div>
+            </motion.div>
+          </>
+        )}
+      </AnimatePresence>
     </section>
   );
 }
