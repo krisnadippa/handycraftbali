@@ -42,6 +42,7 @@ export default function ProductDetail({ product }: { product: typeof productsDat
   const [isAdded, setIsAdded] = useState(false);
   const [selectedSize, setSelectedSize] = useState("M");
   const [selectedColor, setSelectedColor] = useState("Natural");
+  const [flyingImg, setFlyingImg] = useState<{ src: string; x: number; y: number } | null>(null);
   const [isDescOpen, setIsDescOpen] = useState(true);
   const [isShippingOpen, setIsShippingOpen] = useState(true);
 
@@ -96,7 +97,7 @@ export default function ProductDetail({ product }: { product: typeof productsDat
     return `${start.getDate()} - ${end.getDate()} ${months[start.getMonth()]} ${start.getFullYear()}`;
   };
 
-  const addToCart = () => {
+  const addToCart = (startX?: number, startY?: number) => {
     if (typeof window !== "undefined") {
       const currentCart = JSON.parse(localStorage.getItem("glorious_cart") || "[]");
       const existingItemIndex = currentCart.findIndex(
@@ -121,6 +122,19 @@ export default function ProductDetail({ product }: { product: typeof productsDat
       
       localStorage.setItem("glorious_cart", JSON.stringify(currentCart));
       window.dispatchEvent(new Event("cart-updated"));
+
+      // Trigger Flying Animation
+      const x = startX || window.innerWidth / 2;
+      const y = startY || window.innerHeight / 2;
+      setFlyingImg({ src: product.image, x, y });
+
+      // Scroll to top smoothly
+      window.scrollTo({ top: 0, behavior: "smooth" });
+
+      setTimeout(() => {
+        setFlyingImg(null);
+        window.dispatchEvent(new Event("open-cart"));
+      }, 900);
 
       setIsAdded(true);
       setTimeout(() => {
@@ -291,7 +305,7 @@ export default function ProductDetail({ product }: { product: typeof productsDat
             
             {/* Add to Cart */}
             <button 
-              onClick={addToCart}
+              onClick={(e) => addToCart(e.clientX, e.clientY)}
               className="flex-grow sm:flex-grow-0 bg-black hover:bg-gray-800 text-white font-sans font-bold text-xs tracking-wider px-8 h-12 rounded-full transition-colors flex items-center justify-center gap-2 uppercase cursor-pointer"
             >
               <ShoppingBag size={14} />
@@ -417,5 +431,37 @@ export default function ProductDetail({ product }: { product: typeof productsDat
 
       </div>
     </section>
+
+    {/* Flying Cart Item Animation */}
+    {flyingImg && (
+      <motion.img
+        src={flyingImg.src}
+        initial={{
+          position: "fixed",
+          top: flyingImg.y - 40,
+          left: flyingImg.x - 40,
+          width: 80,
+          height: 80,
+          borderRadius: "50%",
+          zIndex: 9999,
+          objectFit: "cover",
+          opacity: 1,
+          scale: 1,
+        }}
+        animate={{
+          top: 20,
+          left: typeof window !== "undefined" ? window.innerWidth - 60 : 1000,
+          width: 15,
+          height: 15,
+          opacity: 0.1,
+          scale: 0.1,
+        }}
+        transition={{
+          duration: 0.9,
+          ease: [0.25, 1, 0.5, 1],
+        }}
+        className="pointer-events-none shadow-lg border border-white"
+      />
+    )}
   );
 }

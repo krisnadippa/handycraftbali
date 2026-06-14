@@ -30,11 +30,17 @@ export default function Navbar() {
   useEffect(() => {
     loadCart();
     loadCurrency();
+    
+    const handleOpenCart = () => setCartOpen(true);
+    
     window.addEventListener("cart-updated", loadCart);
     window.addEventListener("currency-changed", loadCurrency);
+    window.addEventListener("open-cart", handleOpenCart);
+    
     return () => {
       window.removeEventListener("cart-updated", loadCart);
       window.removeEventListener("currency-changed", loadCurrency);
+      window.removeEventListener("open-cart", handleOpenCart);
     };
   }, []);
 
