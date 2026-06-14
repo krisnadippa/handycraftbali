@@ -814,7 +814,16 @@ export default function Products({ limit, category, hideHeader = false }: { limi
                       >
                         <Minus size={14} />
                       </button>
-                      <span className="flex-1 text-center font-semibold text-gray-900 text-sm">{drawerQty}</span>
+                      <input
+                        type="number"
+                        min="1"
+                        value={drawerQty}
+                        onChange={(e) => {
+                          const val = parseInt(e.target.value, 10);
+                          setDrawerQty(isNaN(val) ? 1 : Math.max(1, val));
+                        }}
+                        className="w-12 text-center font-semibold text-gray-900 text-sm focus:outline-none bg-transparent [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none border-0 p-0"
+                      />
                       <button
                         onClick={() => setDrawerQty(drawerQty + 1)}
                         className="flex-1 flex items-center justify-center text-gray-600 hover:text-black transition-colors"

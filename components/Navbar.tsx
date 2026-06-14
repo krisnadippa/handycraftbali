@@ -70,6 +70,18 @@ export default function Navbar() {
     window.dispatchEvent(new Event("cart-updated"));
   };
 
+  const setCartItemQuantity = (id: number, size: string | undefined, color: string | undefined, newQty: number) => {
+    const updated = cartItems.map((item) => {
+      if (item.id === id && item.size === size && item.color === color) {
+        return newQty > 0 ? { ...item, quantity: newQty } : null;
+      }
+      return item;
+    }).filter(Boolean);
+
+    localStorage.setItem("glorious_cart", JSON.stringify(updated));
+    window.dispatchEvent(new Event("cart-updated"));
+  };
+
   const removeItem = (id: number, size: string | undefined, color: string | undefined) => {
     const updated = cartItems.filter((item) => !(item.id === id && item.size === size && item.color === color));
     localStorage.setItem("glorious_cart", JSON.stringify(updated));
@@ -349,7 +361,16 @@ export default function Navbar() {
                           >
                             <Minus size={10} />
                           </button>
-                          <span className="text-xs font-bold w-4 text-center">{item.quantity || 1}</span>
+                          <input
+                            type="number"
+                            min="1"
+                            value={item.quantity || 1}
+                            onChange={(e) => {
+                              const val = parseInt(e.target.value, 10);
+                              setCartItemQuantity(item.id, item.size, item.color, isNaN(val) ? 1 : Math.max(1, val));
+                            }}
+                            className="w-10 text-center font-bold text-xs focus:outline-none bg-transparent [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none border-0 p-0"
+                          />
                           <button
                             onClick={() => updateQuantity(item.id, item.size, item.color, 1)}
                             className="w-6 h-6 rounded-full border border-gray-300 flex items-center justify-center hover:bg-black hover:text-white transition-colors cursor-pointer"
