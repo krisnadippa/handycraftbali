@@ -719,7 +719,7 @@ export default function Products({ limit, category, hideHeader = false }: { limi
               <div className="absolute top-[99%] left-0 right-0 h-[200vh] bg-white pointer-events-none z-[-1]" />
 
               {/* Inner Scrollable Container */}
-              <div className="max-h-[72vh] overflow-y-auto pb-4 pr-1">
+              <div className="max-h-[75vh] overflow-y-auto pb-8 pt-2 px-1">
                 {/* Header Info */}
                 <div className="flex gap-4 items-start pb-6 border-b border-gray-100">
                   <img
@@ -800,9 +800,9 @@ export default function Products({ limit, category, hideHeader = false }: { limi
                   </div>
 
                   {/* Color Selector */}
-                  <div>
+                  <div className="py-1">
                     <p className="text-xs font-bold text-gray-900 mb-3 uppercase tracking-wider">Pilih Warna</p>
-                    <div className="flex items-center gap-3">
+                    <div className="flex items-center gap-3 py-1.5 px-1">
                       {[
                         { name: "Natural", class: "bg-[#D9B48F]" },
                         { name: "Hitam", class: "bg-[#1A1A1A]" },
