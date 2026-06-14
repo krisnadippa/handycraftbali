@@ -26,6 +26,25 @@ const categories = [
   },
 ];
 
+function CategoryImage({ src, alt }: { src: string; alt: string }) {
+  const [loaded, setLoaded] = useState(false);
+  return (
+    <div className="absolute inset-0 w-full h-full">
+      {!loaded && (
+        <div className="absolute inset-0 bg-neutral-100 animate-pulse" />
+      )}
+      <img
+        src={src}
+        alt={alt}
+        onLoad={() => setLoaded(true)}
+        className={`w-full h-full object-cover transition-all duration-500 group-hover:scale-105 ${
+          loaded ? "opacity-100" : "opacity-0"
+        }`}
+      />
+    </div>
+  );
+}
+
 export default function Categories() {
   const [activeTab, setActiveTab] = useState("ALL");
 
@@ -91,11 +110,9 @@ export default function Categories() {
               key={cat.name}
               className={`group rounded-[2rem] p-6 relative overflow-hidden flex flex-col justify-end aspect-[4/5] sm:aspect-[3/4] md:aspect-[4/5] shadow-sm cursor-pointer ${cat.bgColor}`}
             >
-              {/* Background Image with Zoom on Hover */}
-              <img
+              <CategoryImage
                 src={cat.image}
                 alt={cat.name}
-                className="absolute inset-0 w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
               />
               
               {/* White Label Pill at bottom left */}

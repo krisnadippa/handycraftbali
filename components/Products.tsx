@@ -228,6 +228,25 @@ export const productsData = [
   },
 ];
 
+function ProductImage({ src, alt }: { src: string; alt: string }) {
+  const [loaded, setLoaded] = useState(false);
+  return (
+    <div className="relative w-full h-full flex items-center justify-center">
+      {!loaded && (
+        <div className="absolute inset-0 bg-neutral-100 animate-pulse rounded-[1.5rem] md:rounded-[2rem]" />
+      )}
+      <img
+        src={src}
+        alt={alt}
+        onLoad={() => setLoaded(true)}
+        className={`w-full h-full object-cover transition-all duration-500 group-hover:scale-105 ${
+          loaded ? "opacity-100" : "opacity-0"
+        }`}
+      />
+    </div>
+  );
+}
+
 export default function Products({ limit, category, hideHeader = false }: { limit?: number; category?: string; hideHeader?: boolean }) {
   const [activeTab, setActiveTab] = useState("ALL");
   const [addingId, setAddingId] = useState<number | null>(null);
@@ -402,10 +421,9 @@ export default function Products({ limit, category, hideHeader = false }: { limi
                 >
                   {/* Image Container */}
                   <div className="relative overflow-hidden bg-[#F4F4F4] rounded-[1.5rem] md:rounded-[2rem] aspect-[3/4] sm:aspect-auto sm:h-[320px] md:h-[360px] w-full flex items-center justify-center">
-                    <img
+                    <ProductImage
                       src={product.image}
                       alt={product.name}
-                      className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
                     />
 
                     {/* Actions overlay */}

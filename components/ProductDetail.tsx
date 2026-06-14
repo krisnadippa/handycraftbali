@@ -5,6 +5,30 @@ import { motion, AnimatePresence } from "motion/react";
 import { Check, Minus, Plus, ChevronLeft, ShoppingBag, ChevronDown, ChevronUp, Truck, Clock, Tag } from "lucide-react";
 import { productsData } from "@/components/Products";
 
+function DetailImage({ src, alt }: { src: string; alt: string }) {
+  const [loaded, setLoaded] = useState(false);
+
+  useEffect(() => {
+    setLoaded(false);
+  }, [src]);
+
+  return (
+    <div className="relative w-full h-full flex items-center justify-center">
+      {!loaded && (
+        <div className="absolute inset-0 bg-neutral-100 animate-pulse rounded-3xl" />
+      )}
+      <img
+        src={src}
+        alt={alt}
+        onLoad={() => setLoaded(true)}
+        className={`w-[80%] h-[80%] object-contain transition-opacity duration-300 ${
+          loaded ? "opacity-100" : "opacity-0"
+        }`}
+      />
+    </div>
+  );
+}
+
 export default function ProductDetail({ product }: { product: typeof productsData[0] }) {
   const [qty, setQty] = useState(1);
   const [activeImage, setActiveImage] = useState(0);
@@ -117,10 +141,9 @@ export default function ProductDetail({ product }: { product: typeof productsDat
         {/* Left Column: Image & Thumbnails (Col span 6) */}
         <div className="lg:col-span-6 flex flex-col gap-6">
           <div className="relative w-full aspect-square flex items-center justify-center">
-            <img 
+            <DetailImage 
               src={images[activeImage]} 
               alt={product.name} 
-              className="w-[80%] h-[80%] object-contain"
             />
 
             {/* Success overlay animation */}
