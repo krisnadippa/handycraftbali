@@ -271,7 +271,7 @@ export default function Products({ limit, category, hideHeader = false }: { limi
   const [drawerProduct, setDrawerProduct] = useState<typeof productsData[0] | null>(null);
   const [drawerSize, setDrawerSize] = useState("M");
   const [drawerColor, setDrawerColor] = useState("Natural");
-  const [drawerQty, setDrawerQty] = useState(1);
+  const [drawerQty, setDrawerQty] = useState<number | "">(1);
   const [drawerActionType, setDrawerActionType] = useState<"cart" | "whatsapp">("cart");
 
   const loadCurrency = () => {
@@ -351,6 +351,17 @@ export default function Products({ limit, category, hideHeader = false }: { limi
       window.removeEventListener("search-products", handleSearchProducts);
     };
   }, []);
+
+  useEffect(() => {
+    if (drawerProduct) {
+      document.body.style.overflow = "hidden";
+    } else {
+      document.body.style.overflow = "";
+    }
+    return () => {
+      document.body.style.overflow = "";
+    };
+  }, [drawerProduct]);
 
   const isFirstMount = useRef(true);
 
@@ -690,6 +701,14 @@ export default function Products({ limit, category, hideHeader = false }: { limi
               animate={{ y: 0 }}
               exit={{ y: "100%" }}
               transition={{ type: "spring", damping: 25, stiffness: 250 }}
+              drag="y"
+              dragConstraints={{ top: 0 }}
+              dragElastic={{ top: 0, bottom: 0.5 }}
+              onDragEnd={(event, info) => {
+                if (info.offset.y > 150) {
+                  setDrawerProduct(null);
+                }
+              }}
               className="fixed bottom-0 left-0 right-0 max-h-[85vh] overflow-y-auto bg-white rounded-t-[2.5rem] shadow-[0_-10px_30px_rgba(0,0,0,0.15)] z-50 px-6 py-8 md:px-12 font-sans text-black"
             >
               {/* Drag Handle Indicator */}
@@ -809,7 +828,7 @@ export default function Products({ limit, category, hideHeader = false }: { limi
                   <div className="flex items-center gap-4">
                     <div className="flex items-center border border-gray-200 rounded-full w-32 h-11 bg-white">
                       <button
-                        onClick={() => setDrawerQty(Math.max(1, drawerQty - 1))}
+                        onClick={() => setDrawerQty(Math.max(1, (Number(drawerQty) || 1) - 1))}
                         className="flex-1 flex items-center justify-center text-gray-600 hover:text-black transition-colors"
                       >
                         <Minus size={14} />
@@ -819,13 +838,23 @@ export default function Products({ limit, category, hideHeader = false }: { limi
                         min="1"
                         value={drawerQty}
                         onChange={(e) => {
-                          const val = parseInt(e.target.value, 10);
-                          setDrawerQty(isNaN(val) ? 1 : Math.max(1, val));
+                          const val = e.target.value;
+                          if (val === "") {
+                            setDrawerQty("");
+                          } else {
+                            const parsed = parseInt(val, 10);
+                            setDrawerQty(isNaN(parsed) ? 1 : Math.max(1, parsed));
+                          }
+                        }}
+                        onBlur={() => {
+                          if (drawerQty === "" || drawerQty < 1) {
+                            setDrawerQty(1);
+                          }
                         }}
                         className="w-12 text-center font-semibold text-gray-900 text-sm focus:outline-none bg-transparent [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none border-0 p-0"
                       />
                       <button
-                        onClick={() => setDrawerQty(drawerQty + 1)}
+                        onClick={() => setDrawerQty((Number(drawerQty) || 1) + 1)}
                         className="flex-1 flex items-center justify-center text-gray-600 hover:text-black transition-colors"
                       >
                         <Plus size={14} />
@@ -838,7 +867,7 @@ export default function Products({ limit, category, hideHeader = false }: { limi
               {/* Actions Footer */}
               <div className="pt-6 border-t border-gray-100 flex gap-4">
                 <button
-                  onClick={() => addToCart(drawerProduct, drawerSize, drawerColor, drawerQty)}
+                  onClick={() => addToCart(drawerProduct, drawerSize, drawerColor, Number(drawerQty) || 1)}
                   className={`flex-1 h-12 rounded-full font-sans font-bold text-xs tracking-wider transition-colors flex items-center justify-center gap-2 uppercase cursor-pointer ${
                     drawerActionType === "cart"
                       ? "bg-black hover:bg-gray-800 text-white"
@@ -849,7 +878,7 @@ export default function Products({ limit, category, hideHeader = false }: { limi
                   Add to Cart
                 </button>
                 <button
-                  onClick={() => orderWhatsApp(drawerProduct, drawerSize, drawerColor, drawerQty)}
+                  onClick={() => orderWhatsApp(drawerProduct, drawerSize, drawerColor, Number(drawerQty) || 1)}
                   className={`flex-1 h-12 rounded-full transition-colors flex items-center justify-center gap-2 uppercase cursor-pointer font-sans font-bold text-xs tracking-wider text-white ${
                     drawerActionType === "whatsapp"
                       ? "bg-[#25D366] hover:bg-[#128C7E]"

@@ -36,7 +36,7 @@ function DetailImage({ src, alt }: { src: string; alt: string }) {
 }
 
 export default function ProductDetail({ product }: { product: typeof productsData[0] }) {
-  const [qty, setQty] = useState(1);
+  const [qty, setQty] = useState<number | "">(1);
   const [activeImage, setActiveImage] = useState(0);
   const [currency, setCurrency] = useState("USD");
   const [isAdded, setIsAdded] = useState(false);
@@ -83,8 +83,8 @@ export default function ProductDetail({ product }: { product: typeof productsDat
 
   const unitPrice = getNumericPrice(product.price);
   const wholesalePrice = unitPrice * 0.8;
-  const activeUnitPrice = qty >= 50 ? wholesalePrice : unitPrice;
-  const totalPrice = activeUnitPrice * qty;
+  const activeUnitPrice = (Number(qty) || 1) >= 50 ? wholesalePrice : unitPrice;
+  const totalPrice = activeUnitPrice * (Number(qty) || 1);
 
   const getEstimatedArrival = () => {
     const today = new Date();
@@ -105,7 +105,7 @@ export default function ProductDetail({ product }: { product: typeof productsDat
       );
       
       if (existingItemIndex > -1) {
-        currentCart[existingItemIndex].quantity = (currentCart[existingItemIndex].quantity || 1) + qty;
+        currentCart[existingItemIndex].quantity = (currentCart[existingItemIndex].quantity || 1) + (Number(qty) || 1);
         const updatedItem = currentCart.splice(existingItemIndex, 1)[0];
         currentCart.unshift(updatedItem);
       } else {
@@ -114,7 +114,7 @@ export default function ProductDetail({ product }: { product: typeof productsDat
           name: product.name,
           price: product.price,
           image: product.image,
-          quantity: qty,
+          quantity: Number(qty) || 1,
           size: selectedSize,
           color: selectedColor
         });
@@ -137,7 +137,7 @@ export default function ProductDetail({ product }: { product: typeof productsDat
   };
 
   const orderWhatsApp = () => {
-    const text = `Halo BaliCraft, saya ingin memesan ${qty} pcs "${product.name}" (Ukuran: ${selectedSize}, Warna: ${selectedColor}) dengan harga satuan ${formatPrice(activeUnitPrice)} (Total: ${formatPrice(totalPrice)}).\n\nMohon informasi ketersediaan barang dan metode pembayaran. Matur Suksma!`;
+    const text = `Halo BaliCraft, saya ingin memesan ${Number(qty) || 1} pcs "${product.name}" (Ukuran: ${selectedSize}, Warna: ${selectedColor}) dengan harga satuan ${formatPrice(activeUnitPrice)} (Total: ${formatPrice(totalPrice)}).\n\nMohon informasi ketersediaan barang dan metode pembayaran. Matur Suksma!`;
     const url = `https://wa.me/6281339711438?text=${encodeURIComponent(text)}`;
     window.open(url, "_blank");
   };
@@ -300,7 +300,7 @@ export default function ProductDetail({ product }: { product: typeof productsDat
             {/* Qty Selector */}
             <div className="flex items-center border border-gray-200 rounded-full w-32 h-12 bg-white">
               <button 
-                onClick={() => setQty(Math.max(1, qty - 1))} 
+                onClick={() => setQty(Math.max(1, (Number(qty) || 1) - 1))} 
                 className="flex-1 flex items-center justify-center text-gray-600 hover:text-black transition-colors"
               >
                 <Minus size={14} />
@@ -310,13 +310,23 @@ export default function ProductDetail({ product }: { product: typeof productsDat
                 min="1"
                 value={qty}
                 onChange={(e) => {
-                  const val = parseInt(e.target.value, 10);
-                  setQty(isNaN(val) ? 1 : Math.max(1, val));
+                  const val = e.target.value;
+                  if (val === "") {
+                    setQty("");
+                  } else {
+                    const parsed = parseInt(val, 10);
+                    setQty(isNaN(parsed) ? 1 : Math.max(1, parsed));
+                  }
+                }}
+                onBlur={() => {
+                  if (qty === "" || qty < 1) {
+                    setQty(1);
+                  }
                 }}
                 className="w-12 text-center font-semibold text-gray-900 text-sm focus:outline-none bg-transparent [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none border-0 p-0"
               />
               <button 
-                onClick={() => setQty(qty + 1)} 
+                onClick={() => setQty((Number(qty) || 1) + 1)} 
                 className="flex-1 flex items-center justify-center text-gray-600 hover:text-black transition-colors"
               >
                 <Plus size={14} />
