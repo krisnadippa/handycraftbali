@@ -702,197 +702,201 @@ export default function Products({ limit, category, hideHeader = false }: { limi
               exit={{ y: "100%" }}
               transition={{ type: "spring", damping: 25, stiffness: 250 }}
               drag="y"
-              dragConstraints={{ top: 0, bottom: 0 }}
+              dragConstraints={{ top: 0 }}
               dragElastic={{ top: 0, bottom: 0.5 }}
+              dragSnapToOrigin={true}
               onDragEnd={(event, info) => {
                 if (info.offset.y > 150) {
                   setDrawerProduct(null);
                 }
               }}
-              className="fixed bottom-0 left-0 right-0 max-h-[85vh] overflow-y-auto bg-white rounded-t-[2.5rem] shadow-[0_-10px_30px_rgba(0,0,0,0.15)] z-50 px-6 py-8 md:px-12 font-sans text-black"
+              className="fixed bottom-0 left-0 right-0 bg-white rounded-t-[2.5rem] shadow-[0_-10px_30px_rgba(0,0,0,0.15)] z-50 px-6 py-6 md:px-12 font-sans text-black overflow-visible"
             >
               {/* Drag Handle Indicator */}
               <div className="w-12 h-1.5 bg-gray-200 rounded-full mx-auto mb-6 cursor-pointer" onClick={() => setDrawerProduct(null)} />
 
               {/* Bottom solid white block extension to prevent leak during drag or bounce */}
-              <div className="absolute top-[99%] left-0 right-0 h-[100vh] bg-white pointer-events-none" />
+              <div className="absolute top-[99%] left-0 right-0 h-[200vh] bg-white pointer-events-none z-[-1]" />
 
-              {/* Header Info */}
-              <div className="flex gap-4 items-start pb-6 border-b border-gray-100">
-                <img
-                  src={drawerProduct.image}
-                  alt={drawerProduct.name}
-                  className="w-20 h-20 md:w-24 md:h-24 rounded-2xl object-cover bg-gray-100 border border-gray-100"
-                />
-                <div className="flex-grow">
-                  <div className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-0.5">
-                    {drawerProduct.category}
-                  </div>
-                  <h3 className="text-lg md:text-xl font-bold text-gray-900 tracking-tight leading-snug">
-                    {drawerProduct.name}
-                  </h3>
-                  <div className="flex flex-col mt-1.5">
-                    {Number(drawerQty) >= 50 ? (
-                      <div className="flex items-baseline gap-1.5 flex-wrap">
-                        <span className="text-lg font-bold text-green-600">
-                          {formatPrice(
-                            (parseFloat(drawerProduct.price.replace(/[^0-9.]/g, "")) * 0.8).toString()
-                          )}
-                        </span>
-                        <span className="text-xs text-gray-500 line-through">
+              {/* Inner Scrollable Container */}
+              <div className="max-h-[72vh] overflow-y-auto pb-4 pr-1">
+                {/* Header Info */}
+                <div className="flex gap-4 items-start pb-6 border-b border-gray-100">
+                  <img
+                    src={drawerProduct.image}
+                    alt={drawerProduct.name}
+                    className="w-20 h-20 md:w-24 md:h-24 rounded-2xl object-cover bg-gray-100 border border-gray-100"
+                  />
+                  <div className="flex-grow">
+                    <div className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-0.5">
+                      {drawerProduct.category}
+                    </div>
+                    <h3 className="text-lg md:text-xl font-bold text-gray-900 tracking-tight leading-snug">
+                      {drawerProduct.name}
+                    </h3>
+                    <div className="flex flex-col mt-1.5">
+                      {Number(drawerQty) >= 50 ? (
+                        <div className="flex items-baseline gap-1.5 flex-wrap">
+                          <span className="text-lg font-bold text-green-600">
+                            {formatPrice(
+                              (parseFloat(drawerProduct.price.replace(/[^0-9.]/g, "")) * 0.8).toString()
+                            )}
+                          </span>
+                          <span className="text-xs text-gray-500 line-through">
+                            {formatPrice(
+                              parseFloat(drawerProduct.price.replace(/[^0-9.]/g, "")).toString()
+                            )}
+                          </span>
+                          <span className="text-xs text-gray-500 font-semibold font-normal">/ unit</span>
+                          <span className="text-[9px] bg-green-50 text-green-700 px-1.5 py-0.5 rounded font-bold uppercase tracking-wider ml-1">
+                            Grosir 20% Off
+                          </span>
+                        </div>
+                      ) : (
+                        <span className="text-lg font-bold text-black">
                           {formatPrice(
                             parseFloat(drawerProduct.price.replace(/[^0-9.]/g, "")).toString()
                           )}
+                          <span className="text-xs text-gray-500 font-semibold font-normal ml-1">/ unit</span>
                         </span>
-                        <span className="text-xs text-gray-500 font-semibold font-normal">/ unit</span>
-                        <span className="text-[9px] bg-green-50 text-green-700 px-1.5 py-0.5 rounded font-bold uppercase tracking-wider ml-1">
-                          Grosir 20% Off
+                      )}
+                      {parseFloat(drawerProduct.price.replace(/[^0-9.]/g, "")) && (
+                        <span className="text-[10px] text-gray-500 font-medium">
+                          Grosir (≥ 50 pcs): {formatPrice(
+                            (parseFloat(drawerProduct.price.replace(/[^0-9.]/g, "")) * 0.8).toString()
+                          )}
                         </span>
+                      )}
+                    </div>
+                  </div>
+                  <button
+                    onClick={() => setDrawerProduct(null)}
+                    className="w-8 h-8 rounded-full bg-gray-50 hover:bg-gray-100 transition-colors flex items-center justify-center cursor-pointer text-gray-500"
+                  >
+                    <X size={18} />
+                  </button>
+                </div>
+
+                {/* Options Selectors */}
+                <div className="py-6 flex flex-col gap-6">
+                  {/* Size Selector */}
+                  <div>
+                    <p className="text-xs font-bold text-gray-900 mb-3 uppercase tracking-wider">Pilih Ukuran</p>
+                    <div className="flex gap-2.5">
+                      {["S", "M", "L"].map((size) => (
+                        <button
+                          key={size}
+                          onClick={() => setDrawerSize(size)}
+                          className={`w-11 h-11 rounded-full font-sans font-semibold text-xs transition-all flex items-center justify-center cursor-pointer ${
+                            drawerSize === size
+                              ? "bg-black text-white"
+                              : "bg-gray-50 text-gray-600 hover:bg-gray-100"
+                          }`}
+                        >
+                          {size}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Color Selector */}
+                  <div>
+                    <p className="text-xs font-bold text-gray-900 mb-3 uppercase tracking-wider">Pilih Warna</p>
+                    <div className="flex items-center gap-3">
+                      {[
+                        { name: "Natural", class: "bg-[#D9B48F]" },
+                        { name: "Hitam", class: "bg-[#1A1A1A]" },
+                        { name: "Terracotta", class: "bg-[#C86446]" },
+                        { name: "White Wash", class: "bg-[#EAE8E4] border border-gray-300" }
+                      ].map((color) => (
+                        <button
+                          key={color.name}
+                          onClick={() => setDrawerColor(color.name)}
+                          className={`relative w-10 h-10 rounded-full cursor-pointer transition-all flex items-center justify-center ${color.class} ${
+                            drawerColor === color.name ? "ring-2 ring-black ring-offset-2 scale-105" : "hover:scale-105"
+                          }`}
+                          title={color.name}
+                        >
+                          {drawerColor === color.name && (
+                            <Check size={14} className={color.name === "White Wash" ? "text-black" : "text-white"} />
+                          )}
+                        </button>
+                      ))}
+                      <span className="text-xs font-semibold text-gray-500 ml-1">
+                        {drawerColor}
+                      </span>
+                    </div>
+                  </div>
+
+                  {/* Qty Selector */}
+                  <div>
+                    <p className="text-xs font-bold text-gray-900 mb-3 uppercase tracking-wider">Jumlah (Qty)</p>
+                    <div className="flex items-center gap-4">
+                      <div className="flex items-center border border-gray-200 rounded-full w-32 h-11 bg-white">
+                        <button
+                          onClick={() => setDrawerQty(Math.max(1, (Number(drawerQty) || 1) - 1))}
+                          className="flex-1 flex items-center justify-center text-gray-600 hover:text-black transition-colors"
+                        >
+                          <Minus size={14} />
+                        </button>
+                        <input
+                          type="number"
+                          min="1"
+                          value={drawerQty}
+                          onChange={(e) => {
+                            const val = e.target.value;
+                            if (val === "") {
+                              setDrawerQty("");
+                            } else {
+                              const parsed = parseInt(val, 10);
+                              setDrawerQty(isNaN(parsed) ? 1 : Math.max(1, parsed));
+                            }
+                          }}
+                          onBlur={() => {
+                            if (drawerQty === "" || drawerQty < 1) {
+                              setDrawerQty(1);
+                            }
+                          }}
+                          className="w-12 text-center font-semibold text-gray-900 text-[16px] focus:outline-none bg-transparent [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none border-0 p-0"
+                        />
+                        <button
+                          onClick={() => setDrawerQty((Number(drawerQty) || 1) + 1)}
+                          className="flex-1 flex items-center justify-center text-gray-600 hover:text-black transition-colors"
+                        >
+                          <Plus size={14} />
+                        </button>
                       </div>
-                    ) : (
-                      <span className="text-lg font-bold text-black">
-                        {formatPrice(
-                          parseFloat(drawerProduct.price.replace(/[^0-9.]/g, "")).toString()
-                        )}
-                        <span className="text-xs text-gray-500 font-semibold font-normal ml-1">/ unit</span>
-                      </span>
-                    )}
-                    {parseFloat(drawerProduct.price.replace(/[^0-9.]/g, "")) && (
-                      <span className="text-[10px] text-gray-500 font-medium">
-                        Grosir (≥ 50 pcs): {formatPrice(
-                          (parseFloat(drawerProduct.price.replace(/[^0-9.]/g, "")) * 0.8).toString()
-                        )}
-                      </span>
-                    )}
-                  </div>
-                </div>
-                <button
-                  onClick={() => setDrawerProduct(null)}
-                  className="w-8 h-8 rounded-full bg-gray-50 hover:bg-gray-100 transition-colors flex items-center justify-center cursor-pointer text-gray-500"
-                >
-                  <X size={18} />
-                </button>
-              </div>
-
-              {/* Options Selectors */}
-              <div className="py-6 flex flex-col gap-6">
-                {/* Size Selector */}
-                <div>
-                  <p className="text-xs font-bold text-gray-900 mb-3 uppercase tracking-wider">Pilih Ukuran</p>
-                  <div className="flex gap-2.5">
-                    {["S", "M", "L"].map((size) => (
-                      <button
-                        key={size}
-                        onClick={() => setDrawerSize(size)}
-                        className={`w-11 h-11 rounded-full font-sans font-semibold text-xs transition-all flex items-center justify-center cursor-pointer ${
-                          drawerSize === size
-                            ? "bg-black text-white"
-                            : "bg-gray-50 text-gray-600 hover:bg-gray-100"
-                        }`}
-                      >
-                        {size}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-
-                {/* Color Selector */}
-                <div>
-                  <p className="text-xs font-bold text-gray-900 mb-3 uppercase tracking-wider">Pilih Warna</p>
-                  <div className="flex items-center gap-3">
-                    {[
-                      { name: "Natural", class: "bg-[#D9B48F]" },
-                      { name: "Hitam", class: "bg-[#1A1A1A]" },
-                      { name: "Terracotta", class: "bg-[#C86446]" },
-                      { name: "White Wash", class: "bg-[#EAE8E4] border border-gray-300" }
-                    ].map((color) => (
-                      <button
-                        key={color.name}
-                        onClick={() => setDrawerColor(color.name)}
-                        className={`relative w-10 h-10 rounded-full cursor-pointer transition-all flex items-center justify-center ${color.class} ${
-                          drawerColor === color.name ? "ring-2 ring-black ring-offset-2 scale-105" : "hover:scale-105"
-                        }`}
-                        title={color.name}
-                      >
-                        {drawerColor === color.name && (
-                          <Check size={14} className={color.name === "White Wash" ? "text-black" : "text-white"} />
-                        )}
-                      </button>
-                    ))}
-                    <span className="text-xs font-semibold text-gray-500 ml-1">
-                      {drawerColor}
-                    </span>
-                  </div>
-                </div>
-
-                {/* Qty Selector */}
-                <div>
-                  <p className="text-xs font-bold text-gray-900 mb-3 uppercase tracking-wider">Jumlah (Qty)</p>
-                  <div className="flex items-center gap-4">
-                    <div className="flex items-center border border-gray-200 rounded-full w-32 h-11 bg-white">
-                      <button
-                        onClick={() => setDrawerQty(Math.max(1, (Number(drawerQty) || 1) - 1))}
-                        className="flex-1 flex items-center justify-center text-gray-600 hover:text-black transition-colors"
-                      >
-                        <Minus size={14} />
-                      </button>
-                      <input
-                        type="number"
-                        min="1"
-                        value={drawerQty}
-                        onChange={(e) => {
-                          const val = e.target.value;
-                          if (val === "") {
-                            setDrawerQty("");
-                          } else {
-                            const parsed = parseInt(val, 10);
-                            setDrawerQty(isNaN(parsed) ? 1 : Math.max(1, parsed));
-                          }
-                        }}
-                        onBlur={() => {
-                          if (drawerQty === "" || drawerQty < 1) {
-                            setDrawerQty(1);
-                          }
-                        }}
-                        className="w-12 text-center font-semibold text-gray-900 text-[16px] focus:outline-none bg-transparent [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none border-0 p-0"
-                      />
-                      <button
-                        onClick={() => setDrawerQty((Number(drawerQty) || 1) + 1)}
-                        className="flex-1 flex items-center justify-center text-gray-600 hover:text-black transition-colors"
-                      >
-                        <Plus size={14} />
-                      </button>
                     </div>
                   </div>
                 </div>
-              </div>
 
-              {/* Actions Footer */}
-              <div className="pt-6 border-t border-gray-100 flex gap-4">
-                <button
-                  onClick={() => addToCart(drawerProduct, drawerSize, drawerColor, Number(drawerQty) || 1)}
-                  className={`flex-1 h-12 rounded-full font-sans font-bold text-xs tracking-wider transition-colors flex items-center justify-center gap-2 uppercase cursor-pointer ${
-                    drawerActionType === "cart"
-                      ? "bg-black hover:bg-gray-800 text-white"
-                      : "bg-gray-100 hover:bg-gray-200 text-black border border-gray-200"
-                  }`}
-                >
-                  <ShoppingBag size={14} />
-                  Add to Cart
-                </button>
-                <button
-                  onClick={() => orderWhatsApp(drawerProduct, drawerSize, drawerColor, Number(drawerQty) || 1)}
-                  className={`flex-1 h-12 rounded-full transition-colors flex items-center justify-center gap-2 uppercase cursor-pointer font-sans font-bold text-xs tracking-wider text-white ${
-                    drawerActionType === "whatsapp"
-                      ? "bg-[#25D366] hover:bg-[#128C7E]"
-                      : "bg-gray-100 hover:bg-gray-200 text-black border border-gray-200"
-                  }`}
-                >
-                  <svg width="14" height="14" fill="currentColor" viewBox="0 0 24 24">
-                    <path d="M12.012 2c-5.506 0-9.989 4.478-9.99 9.984a9.96 9.96 0 001.37 5.028L2 22l5.175-1.356a9.92 9.92 0 004.833 1.258h.005c5.507 0 9.991-4.479 9.992-9.986.002-2.668-1.037-5.176-2.927-7.067A9.921 9.921 0 0012.012 2z" />
-                  </svg>
-                  Pesan Langsung
-                </button>
+                {/* Actions Footer */}
+                <div className="pt-6 border-t border-gray-100 flex gap-4">
+                  <button
+                    onClick={() => addToCart(drawerProduct, drawerSize, drawerColor, Number(drawerQty) || 1)}
+                    className={`flex-1 h-12 rounded-full font-sans font-bold text-xs tracking-wider transition-colors flex items-center justify-center gap-2 uppercase cursor-pointer ${
+                      drawerActionType === "cart"
+                        ? "bg-black hover:bg-gray-800 text-white"
+                        : "bg-gray-100 hover:bg-gray-200 text-black border border-gray-200"
+                    }`}
+                  >
+                    <ShoppingBag size={14} />
+                    Add to Cart
+                  </button>
+                  <button
+                    onClick={() => orderWhatsApp(drawerProduct, drawerSize, drawerColor, Number(drawerQty) || 1)}
+                    className={`flex-1 h-12 rounded-full transition-colors flex items-center justify-center gap-2 uppercase cursor-pointer font-sans font-bold text-xs tracking-wider text-white ${
+                      drawerActionType === "whatsapp"
+                        ? "bg-[#25D366] hover:bg-[#128C7E]"
+                        : "bg-gray-100 hover:bg-gray-200 text-black border border-gray-200"
+                    }`}
+                  >
+                    <svg width="14" height="14" fill="currentColor" viewBox="0 0 24 24">
+                      <path d="M12.012 2c-5.506 0-9.989 4.478-9.99 9.984a9.96 9.96 0 001.37 5.028L2 22l5.175-1.356a9.92 9.92 0 004.833 1.258h.005c5.507 0 9.991-4.479 9.992-9.986.002-2.668-1.037-5.176-2.927-7.067A9.921 9.921 0 0012.012 2z" />
+                    </svg>
+                    Pesan Langsung
+                  </button>
+                </div>
               </div>
             </motion.div>
           </>
