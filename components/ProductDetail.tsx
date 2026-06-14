@@ -363,7 +363,7 @@ export default function ProductDetail({ product }: { product: typeof productsDat
                   transition={{ duration: 0.2 }}
                   className="overflow-hidden"
                 >
-                  <div className="p-4 pt-0 text-sm text-gray-600 font-sans leading-relaxed border-t border-gray-50">
+                  <div className="p-4 pt-4 text-sm text-gray-600 font-sans leading-relaxed border-t border-gray-50">
                     <p className="mb-2 text-xs">Kerajinan tangan tradisional buatan Bali dengan detail estetik tinggi buatan pengrajin lokal asli. Menggunakan bahan ramah lingkungan yang tahan lama.</p>
                     <ul className="list-disc pl-5 space-y-1 mt-2 text-[11px]">
                       <li>Bahan: Alami / Premium lokal Bali</li>
