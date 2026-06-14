@@ -19,6 +19,10 @@ export default function SmoothScroll({
       touchMultiplier: 2,
     });
 
+    if (typeof window !== "undefined") {
+      (window as any).lenis = lenis;
+    }
+
     const handleAnchorClick = (e: MouseEvent) => {
       const target = e.target as HTMLElement;
       const anchor = target.closest("a");
@@ -46,6 +50,9 @@ export default function SmoothScroll({
     return () => {
       document.removeEventListener("click", handleAnchorClick);
       lenis.destroy();
+      if (typeof window !== "undefined") {
+        delete (window as any).lenis;
+      }
     };
   }, []);
 

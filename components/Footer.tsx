@@ -33,9 +33,9 @@ export default function Footer() {
         className="max-w-[1280px] mx-auto flex flex-col gap-12 relative z-10"
       >
         {/* Top Section: Columns */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-12 gap-10">
+        <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-12 gap-x-6 gap-y-10 md:gap-10">
           
-          <motion.div variants={itemVariants} className="lg:col-span-4 flex flex-col gap-6">
+          <motion.div variants={itemVariants} className="col-span-2 md:col-span-2 lg:col-span-4 flex flex-col gap-6">
             <div className="flex items-center gap-2.5">
               <img 
                 src="/images/logo3.png" 
@@ -52,7 +52,7 @@ export default function Footer() {
           </motion.div>
 
           {/* Column 2: Support Links */}
-          <motion.div variants={itemVariants} className="lg:col-span-2 flex flex-col gap-5">
+          <motion.div variants={itemVariants} className="col-span-1 md:col-span-1 lg:col-span-2 flex flex-col gap-5">
             <span className="text-base font-bold text-[#0f172a]">
               Support
             </span>
@@ -65,7 +65,7 @@ export default function Footer() {
           </motion.div>
 
           {/* Column 3: Company Links */}
-          <motion.div variants={itemVariants} className="lg:col-span-2 flex flex-col gap-5">
+          <motion.div variants={itemVariants} className="col-span-1 md:col-span-1 lg:col-span-2 flex flex-col gap-5">
             <span className="text-base font-bold text-[#0f172a]">
               Company
             </span>
@@ -78,7 +78,7 @@ export default function Footer() {
           </motion.div>
 
           {/* Column 4: Legal Links */}
-          <motion.div variants={itemVariants} className="lg:col-span-2 flex flex-col gap-5">
+          <motion.div variants={itemVariants} className="col-span-1 md:col-span-1 lg:col-span-2 flex flex-col gap-5">
             <span className="text-base font-bold text-[#0f172a]">
               Legal
             </span>
@@ -91,7 +91,7 @@ export default function Footer() {
           </motion.div>
 
           {/* Column 5: Newsletter & Social */}
-          <motion.div variants={itemVariants} className="lg:col-span-2 flex flex-col gap-6 items-end lg:items-start">
+          <motion.div variants={itemVariants} className="col-span-2 md:col-span-2 lg:col-span-2 flex flex-col gap-6 items-start">
             <form
               onSubmit={(e) => e.preventDefault()}
               className="flex items-center bg-white border border-gray-200 p-1.5 rounded-full w-full sm:w-auto min-w-[260px] focus-within:border-gray-400 transition-colors shadow-sm"

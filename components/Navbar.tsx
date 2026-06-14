@@ -16,8 +16,7 @@ export default function Navbar() {
     if (typeof window !== "undefined") {
       const cart = JSON.parse(localStorage.getItem("glorious_cart") || "[]");
       setCartItems(cart);
-      const totalItems = cart.reduce((total: number, item: any) => total + (item.quantity || 1), 0);
-      setCartCount(totalItems);
+      setCartCount(cart.length);
     }
   };
 
