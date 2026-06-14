@@ -18,21 +18,21 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
-  title: "GLORIOUS — Kerajinan Tangan Bali",
+  title: "Aquarius Bali Craft — Kerajinan Tangan Bali",
   description: "Koleksi kerajinan tangan premium dari pengrajin terpilih Bali. Temukan ukiran kayu, tenun, perhiasan, dan dekorasi rumah autentik.",
   keywords: ["kerajinan tangan", "Bali", "ukiran kayu", "tenun", "dekorasi rumah", "souvenir Bali", "AquariusBaliCraft"],
   authors: [{ name: "AquariusBaliCraft" }],
   openGraph: {
-    title: "GLORIOUS — Kerajinan Tangan Bali",
+    title: "Aquarius Bali Craft — Kerajinan Tangan Bali",
     description: "Koleksi kerajinan tangan premium dari pengrajin terpilih Bali. Temukan ukiran kayu, tenun, perhiasan, dan dekorasi rumah autentik.",
     url: "https://glorious-bali.vercel.app",
-    siteName: "GLORIOUS",
+    siteName: "Aquarius Bali Craft",
     images: [
       {
         url: "/images/logo3.png",
         width: 800,
         height: 800,
-        alt: "GLORIOUS Logo",
+        alt: "Aquarius Bali Craft Logo",
       },
     ],
     locale: "id_ID",
@@ -40,7 +40,7 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: "summary",
-    title: "GLORIOUS — Kerajinan Tangan Bali",
+    title: "Aquarius Bali Craft — Kerajinan Tangan Bali",
     description: "Koleksi kerajinan tangan premium dari pengrajin terpilih Bali.",
     images: ["/images/logo3.png"],
   },
